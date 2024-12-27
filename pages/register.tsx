@@ -8,9 +8,10 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    whatsapp: '',
     password: '',
     confirmPassword: '',
-    userType: 'attendee'
+    type: 'presenca_vip'
   });
 
   const router = useRouter();
@@ -43,45 +44,34 @@ export default function Register() {
               <span className="gradient-text">Criar Conta</span>
             </h1>
 
-            {/* Botões de login social */}
-            <div className="space-y-4 mb-8">
-              <button
-                onClick={() => handleSocialLogin('google')}
-                className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-lg border border-gray-600 hover:border-gray-400 bg-dark-800 transition-colors duration-200"
-              >
-                <Image
-                  src="/images/social/google.svg"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                />
-                <span>Continuar com Google</span>
-              </button>
-
-              <button
-                onClick={() => handleSocialLogin('facebook')}
-                className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-lg border border-gray-600 hover:border-gray-400 bg-dark-800 transition-colors duration-200"
-              >
-                <Image
-                  src="/images/social/facebook.svg"
-                  alt="Facebook"
-                  width={20}
-                  height={20}
-                />
-                <span>Continuar com Facebook</span>
-              </button>
-            </div>
-
-            <div className="relative mb-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-dark-800 text-gray-400">Ou registre-se com email</span>
+            <div className="mb-6">
+              <div className="flex justify-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, type: 'presenca_vip' }))}
+                  className={`px-4 py-2 rounded-lg ${
+                    formData.type === 'presenca_vip'
+                      ? 'bg-accent-purple text-white'
+                      : 'bg-dark-800 text-gray-400'
+                  }`}
+                >
+                  Presença VIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, type: 'organizer' }))}
+                  className={`px-4 py-2 rounded-lg ${
+                    formData.type === 'organizer'
+                      ? 'bg-accent-purple text-white'
+                      : 'bg-dark-800 text-gray-400'
+                  }`}
+                >
+                  Promoter
+                </button>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-gray-300 mb-2">
                   Nome Completo
@@ -93,7 +83,6 @@ export default function Register() {
                   value={formData.name}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Seu nome"
                   required
                 />
               </div>
@@ -109,7 +98,22 @@ export default function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="seu@email.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="whatsapp" className="block text-gray-300 mb-2">
+                  WhatsApp
+                </label>
+                <input
+                  type="tel"
+                  id="whatsapp"
+                  name="whatsapp"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                  placeholder="(11) 99999-9999"
+                  className="input-field"
                   required
                 />
               </div>
@@ -146,23 +150,6 @@ export default function Register() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="userType" className="block text-gray-300 mb-2">
-                  Tipo de Conta
-                </label>
-                <select
-                  id="userType"
-                  name="userType"
-                  value={formData.userType}
-                  onChange={handleChange}
-                  className="input-field"
-                  required
-                >
-                  <option value="attendee">Participante VIP</option>
-                  <option value="promoter">Promoter/Organizador</option>
-                </select>
-              </div>
-
               <button type="submit" className="btn-primary w-full">
                 Criar Conta
               </button>
@@ -173,7 +160,7 @@ export default function Register() {
                   Faça login
                 </Link>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext';
+import { UserIcon, CalendarIcon, ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ContactSidebar from './ContactSidebar';
 
 interface LayoutProps {
@@ -10,13 +12,30 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
+  const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
+  const menuItems = user ? [
+    ...(user.type === 'organizer' ? [
+      { href: '/events/manage', label: 'Meus Eventos', icon: CalendarIcon },
+    ] : [
+      { href: '/events', label: 'Eventos', icon: CalendarIcon },
+    ]),
+    { href: '/profile/edit', label: 'Meu Perfil', icon: UserIcon },
+  ] : [];
   
   return (
     <div className="min-h-screen bg-dark-900">
       <nav className="bg-black border-b border-zinc-900 fixed w-full z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-14">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
               <Link href="/" className="flex items-center">
                 <Image
                   src="/images/logo-modern-v3.svg"
@@ -27,12 +46,83 @@ export default function Layout({ children }: LayoutProps) {
                   priority
                 />
               </Link>
+
+              {/* Menu Desktop */}
+              <div className="hidden md:flex items-center space-x-4">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium ${
+                      router.pathname === item.href
+                        ? 'bg-dark-800 text-white'
+                        : 'text-gray-300 hover:bg-dark-800 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 mr-2" />
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              {/* Login/Logout Button */}
+              {user ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
+                >
+                  <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
+                  Sair
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
+                >
+                  <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
+                  Entrar
+                </Link>
+              )}
+
+              {/* Menu Sidebar Button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
+                aria-label="Menu"
+              >
+                <Bars3Icon className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Menu Mobile */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-dark-800">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium ${
+                    router.pathname === item.href
+                      ? 'bg-dark-800 text-white'
+                      : 'text-gray-300 hover:bg-dark-800 hover:text-white'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <item.icon className="h-5 w-5 mr-2" />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
-      <main className="pt-20">
+      <main className="pt-14">
         {children}
       </main>
 
@@ -53,7 +143,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </footer>
 
-      <ContactSidebar />
+      <ContactSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );
 }

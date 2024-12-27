@@ -2,16 +2,44 @@ import Layout from '../components/Layout';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar lógica de login aqui
-    console.log('Login:', { email, password });
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Usar o contexto de autenticação para fazer login
+        authLogin(data.token, data.user);
+        
+        // Redirecionar baseado no tipo de usuário
+        if (data.user.type === 'organizer') {
+          router.push('/events/manage'); // Página de gerenciamento para promoters
+        } else if (data.user.type === 'presenca_vip') {
+          router.push('/events'); // Página de eventos para VIPs
+        }
+      } else {
+        alert(data.message || 'Erro ao fazer login');
+      }
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      alert('Erro ao fazer login. Tente novamente.');
+    }
   };
 
   return (

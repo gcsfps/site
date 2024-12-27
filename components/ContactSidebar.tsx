@@ -1,25 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { PhoneIcon, EnvelopeIcon, Bars3Icon, XMarkIcon, CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { WhatsappIcon } from './icons/WhatsappIcon';
 
-export default function ContactSidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+interface ContactSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function ContactSidebar({ isOpen, onClose }: ContactSidebarProps) {
   const router = useRouter();
 
   const isActive = (path: string) => router.pathname === path;
 
   return (
     <>
-      {/* Botão flutuante */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed right-4 top-6 bg-accent-purple hover:bg-accent-pink transition-colors duration-300 text-white p-3 rounded-lg shadow-lg z-50 group"
-      >
-        <Bars3Icon className="h-6 w-6" />
-      </button>
-
       {/* Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-80 bg-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
@@ -31,7 +27,7 @@ export default function ContactSidebar() {
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold gradient-text">Menu</h2>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="text-gray-400 hover:text-white"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -165,6 +161,14 @@ export default function ContactSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Overlay de fundo */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={onClose}
+        />
+      )}
     </>
   );
 }
