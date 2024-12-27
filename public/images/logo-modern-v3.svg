@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="neonGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF3366"/>
+      <stop offset="100%" stop-color="#9933FF"/>
+    </linearGradient>
+    
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.8"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+
+    <filter id="neon" x="-10%" y="-10%" width="120%" height="120%">
+      <feFlood flood-color="#FF3366" flood-opacity="0.5" result="neonColor"/>
+      <feComposite operator="in" in="neonColor" in2="SourceGraphic"/>
+      <feGaussianBlur stdDeviation="1"/>
+      <feComposite operator="over" in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- Texto principal com contorno -->
+  <text x="10" y="28" 
+        font-family="Helvetica, Arial, sans-serif" 
+        font-size="24" 
+        font-weight="bold" 
+        letter-spacing="2"
+        fill="white"
+        filter="url(#neon)"
+        style="paint-order: stroke fill">
+    AGENDA
+  </text>
+
+  <!-- VIP com efeito de brilho -->
+  <g transform="translate(135, 15)">
+    <text font-family="Helvetica, Arial, sans-serif" 
+          font-size="14" 
+          font-weight="bold"
+          fill="white"
+          filter="url(#glow)">
+      VIP
+      <animate attributeName="opacity"
+               values="0.8;1;0.8"
+               dur="3s"
+               repeatCount="indefinite"/>
+    </text>
+  </g>
+</svg>

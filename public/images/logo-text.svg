@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B624FF"/>
+      <stop offset="50%" style="stop-color:#FF2D6C"/>
+      <stop offset="100%" style="stop-color:#24A5FF"/>
+    </linearGradient>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+
+    <!-- Animação de pulso para o brilho -->
+    <animate 
+      xlink:href="#glow"
+      attributeName="stdDeviation"
+      values="2;3;2"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </defs>
+
+  <!-- Texto AGENDA -->
+  <g filter="url(#glow)">
+    <!-- A -->
+    <path d="M15 30L25 10L35 30M18 22H32" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- G -->
+    <path d="M45 10C55 10 65 15 65 25C65 35 55 40 45 40C35 40 25 35 25 25H45" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- E -->
+    <path d="M75 10V40H105M75 25H95" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- N -->
+    <path d="M115 40V10L135 40V10" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- D -->
+    <path d="M145 10V40H160C170 40 175 35 175 25C175 15 170 10 160 10H145" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- A -->
+    <path d="M185 30L195 10L205 30M188 22H202" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+  </g>
+
+  <!-- Ícone de ondas sonoras -->
+  <g transform="translate(8, 20)" filter="url(#glow)">
+    <path d="M0 0Q3 -5 6 0Q9 5 12 0" stroke="url(#textGradient)" stroke-width="1.5">
+      <animate attributeName="d" 
+        values="M0 0Q3 -5 6 0Q9 5 12 0;M0 0Q3 5 6 0Q9 -5 12 0;M0 0Q3 -5 6 0Q9 5 12 0"
+        dur="2s" 
+        repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Texto VIP -->
+  <g transform="translate(75, 50)" filter="url(#glow)">
+    <!-- V -->
+    <path d="M0 0L10 10L20 0" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- I -->
+    <path d="M25 0V10" stroke="url(#textGradient)" stroke-width="3" stroke-linecap="square"/>
+    <!-- P espelhado -->
+    <path d="M30 10V0H40C45 0 47 2 47 5C47 8 45 10 40 10H30" 
+          stroke="url(#textGradient)" 
+          stroke-width="3" 
+          stroke-linecap="square"
+          transform="scale(-1, 1) translate(-80, 0)"
+    />
+  </g>
+
+  <!-- Efeito de brilho pulsante -->
+  <circle cx="100" cy="25" r="80" fill="url(#textGradient)" opacity="0.1">
+    <animate
+      attributeName="opacity"
+      values="0.1;0.2;0.1"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>

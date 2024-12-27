@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="white" stop-opacity="1"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.8)"/>
+    </linearGradient>
+    
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- Texto principal -->
+  <text x="10" y="28" 
+        font-family="Helvetica, Arial, sans-serif" 
+        font-size="24" 
+        font-weight="bold" 
+        letter-spacing="2"
+        fill="url(#textGlow)"
+        filter="url(#glow)">
+    AGENDA
+  </text>
+
+  <!-- VIP com efeito de brilho -->
+  <text x="140" y="28" 
+        font-family="Helvetica, Arial, sans-serif" 
+        font-size="24" 
+        font-weight="bold"
+        fill="white"
+        filter="url(#glow)">
+    VIP
+  </text>
+
+  <!-- Linha decorativa -->
+  <line x1="10" y1="32" x2="190" y2="32" 
+        stroke="white" 
+        stroke-width="0.5" 
+        stroke-opacity="0.3"/>
+</svg>

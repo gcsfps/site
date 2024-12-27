@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="32" viewBox="0 0 180 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B624FF"/>
+      <stop offset="50%" style="stop-color:#FF2D6C"/>
+      <stop offset="100%" style="stop-color:#24A5FF"/>
+    </linearGradient>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- Texto AGENDA -->
+  <g filter="url(#glow)" transform="translate(0, 4)">
+    <!-- A -->
+    <path d="M12 24L20 8L28 24M14 18H26" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+    <!-- G -->
+    <path d="M36 8C44 8 52 12 52 20C52 28 44 32 36 32C28 32 20 28 20 20H36" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+    <!-- E -->
+    <path d="M60 8V32H84M60 20H76" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+    <!-- N -->
+    <path d="M92 32V8L108 32V8" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+    <!-- D -->
+    <path d="M116 8V32H128C136 32 140 28 140 20C140 12 136 8 128 8H116" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+    <!-- A -->
+    <path d="M148 24L156 8L164 24M150 18H162" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="square"/>
+  </g>
+
+  <!-- Ícone de ondas sonoras -->
+  <g transform="translate(6, 20)" filter="url(#glow)">
+    <path d="M0 0Q2 -4 4 0Q6 4 8 0" stroke="url(#textGradient)" stroke-width="1">
+      <animate attributeName="d" 
+        values="M0 0Q2 -4 4 0Q6 4 8 0;M0 0Q2 4 4 0Q6 -4 8 0;M0 0Q2 -4 4 0Q6 4 8 0"
+        dur="2s" 
+        repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Texto VIP -->
+  <g transform="translate(170, 16)" filter="url(#glow)">
+    <!-- V -->
+    <path d="M0 0L4 4L8 0" stroke="url(#textGradient)" stroke-width="2" stroke-linecap="square"/>
+    <!-- I -->
+    <path d="M10 0V4" stroke="url(#textGradient)" stroke-width="2" stroke-linecap="square"/>
+    <!-- P espelhado -->
+    <path d="M12 4V0H16C18 0 19 0.75 19 2C19 3.25 18 4 16 4H12" 
+          stroke="url(#textGradient)" 
+          stroke-width="2" 
+          stroke-linecap="square"
+          transform="scale(-1, 1) translate(-32, 0)"
+    />
+  </g>
+
+  <!-- Efeito de brilho pulsante -->
+  <circle cx="90" cy="20" r="60" fill="url(#textGradient)" opacity="0.1">
+    <animate
+      attributeName="opacity"
+      values="0.1;0.2;0.1"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>

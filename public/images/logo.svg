@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradientes -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B624FF"/>
+      <stop offset="50%" style="stop-color:#FF2D6C"/>
+      <stop offset="100%" style="stop-color:#24A5FF"/>
+    </linearGradient>
+    
+    <!-- Gradiente para o brilho -->
+    <linearGradient id="shineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.2)"/>
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0.5)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.2)"/>
+    </linearGradient>
+    
+    <!-- Filtro de brilho -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+    </filter>
+  </defs>
+
+  <!-- Círculo base com ondas sonoras -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
+  
+  <!-- Ondas sonoras animadas -->
+  <path d="M30 60 Q45 40 60 60 Q75 80 90 60" stroke="url(#logoGradient)" stroke-width="3" fill="none">
+    <animate attributeName="d" 
+      values="M30 60 Q45 40 60 60 Q75 80 90 60;
+              M30 60 Q45 80 60 60 Q75 40 90 60;
+              M30 60 Q45 40 60 60 Q75 80 90 60"
+      dur="2s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Letras AG estilizadas -->
+  <g transform="translate(60,60) scale(0.8)">
+    <!-- A -->
+    <path d="M-25 25 L-15 -15 L-5 25 M-22 15 L-8 15" 
+      stroke="url(#logoGradient)" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <!-- G -->
+    <path d="M5 -15 Q25 -15 25 5 L25 15 L15 15 M5 -15 Q-15 -15 -15 5 Q-15 25 5 25 Q25 25 25 5" 
+      stroke="url(#logoGradient)" stroke-width="6" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Efeito de brilho -->
+  <circle cx="60" cy="60" r="52" stroke="url(#shineGradient)" stroke-width="1" fill="none" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;0.8;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>
