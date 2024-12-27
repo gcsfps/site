@@ -7,19 +7,19 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { IEvent } from '../../../src/types';
 
 // Dados temporários - mesmos eventos da página principal
-const events: IEvent[] = [
+const mockEvents: IEvent[] = [
   {
     id: '1',
     name: 'Noite Eletrônica',
     date: new Date('2024-12-30T22:00:00'),
     location: 'Club X, São Paulo',
     payment: 150,
-    organizerId: '1', // basic@test.com
+    organizerId: '1',
     totalSpots: 50,
     availableSpots: 30,
     status: 'available',
     flyer: '/images/events/event1.jpg',
-    description: 'Uma noite incrível com os melhores DJs da cena eletrônica. Ambiente sofisticado e público selecionado.',
+    description: 'Uma noite incrível com os melhores DJs da cena eletrônica.',
   },
   {
     id: '2',
@@ -27,12 +27,12 @@ const events: IEvent[] = [
     date: new Date('2024-12-31T23:00:00'),
     location: 'Club Y, São Paulo',
     payment: 200,
-    organizerId: '2', // premium@test.com
+    organizerId: '2',
     totalSpots: 100,
     availableSpots: 45,
     status: 'available',
     flyer: '/images/events/event2.jpg',
-    description: 'O melhor do Hip Hop nacional e internacional. Shows ao vivo e DJs renomados.',
+    description: 'O melhor do Hip Hop nacional e internacional.',
   },
   {
     id: '3',
@@ -40,12 +40,12 @@ const events: IEvent[] = [
     date: new Date('2024-01-01T22:00:00'),
     location: 'Club Z, São Paulo',
     payment: 300,
-    organizerId: '3', // ultimate@test.com
+    organizerId: 'ultimate',
     totalSpots: 200,
     availableSpots: 80,
     status: 'available',
     flyer: '/images/events/event3.jpg',
-    description: 'Celebre a virada do ano no lugar mais exclusivo da cidade. Open bar premium e atrações internacionais.',
+    description: 'Celebre a virada do ano no lugar mais exclusivo da cidade.',
   },
 ];
 
@@ -62,7 +62,7 @@ export default function EventDetails() {
 
   useEffect(() => {
     if (id) {
-      const foundEvent = events.find(e => e.id === id);
+      const foundEvent = mockEvents.find(e => e.id === id);
       if (foundEvent) {
         setEvent(foundEvent);
         
@@ -101,7 +101,7 @@ export default function EventDetails() {
 
     try {
       // Simular envio da aplicação
-      const newApplication: any = {
+      const newApplication = {
         id: Date.now().toString(),
         eventId: event!.id,
         presencaVipId: user.id,
@@ -144,7 +144,7 @@ export default function EventDetails() {
   return (
     <Layout>
       <div className="min-h-screen bg-dark-900 py-20">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="glass-card overflow-hidden">
             {/* Flyer do Evento */}
             <div className="relative h-96">
@@ -222,43 +222,57 @@ export default function EventDetails() {
                 <p className="text-gray-300">{event.description}</p>
               </div>
 
-              {/* Botão de Candidatura */}
-              {user?.type === 'presenca_vip' && (
-                <div className="flex flex-col items-center space-y-4">
-                  {!hasApplied ? (
-                    <button
-                      onClick={handleApply}
-                      disabled={event.status !== 'available'}
-                      className={`w-full md:w-auto px-8 py-3 rounded-lg font-semibold ${
-                        event.status === 'available'
-                          ? 'bg-accent-purple hover:bg-accent-pink text-white'
-                          : 'bg-gray-600 cursor-not-allowed'
-                      }`}
-                    >
-                      Candidatar-se
-                    </button>
-                  ) : (
-                    <div className="text-center">
-                      <p className="text-lg font-semibold mb-2">
-                        Status da sua candidatura:
-                      </p>
-                      <span className={`px-4 py-2 rounded-full text-sm ${
-                        applicationStatus === 'approved'
-                          ? 'bg-green-500/20 text-green-400'
-                          : applicationStatus === 'rejected'
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {applicationStatus === 'approved'
-                          ? 'Aprovada'
-                          : applicationStatus === 'rejected'
-                          ? 'Rejeitada'
-                          : 'Pendente'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Botões de Ação */}
+              <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                {user?.type === 'presenca_vip' && (
+                  <>
+                    {!hasApplied && (
+                      <button
+                        onClick={handleApply}
+                        className="bg-accent-purple hover:bg-accent-pink text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      >
+                        Quero Participar
+                      </button>
+                    )}
+
+                    {hasApplied && (
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                          applicationStatus === 'approved'
+                            ? 'bg-green-500/20 text-green-400'
+                            : applicationStatus === 'rejected'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {applicationStatus === 'approved'
+                            ? 'Você foi aprovado!'
+                            : applicationStatus === 'rejected'
+                            ? 'Sua solicitação foi rejeitada'
+                            : 'Solicitação pendente'}
+                        </div>
+
+                        {applicationStatus === 'approved' && (
+                          <button
+                            onClick={() => router.push(`/events/${id}/confirmed`)}
+                            className="bg-accent-purple hover:bg-accent-pink text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            Ver Lista de Presenças
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {user?.type === 'organizer' && user.id === event?.organizerId && (
+                  <button
+                    onClick={() => router.push(`/events/${id}/applications`)}
+                    className="bg-accent-purple hover:bg-accent-pink text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Gerenciar Presenças
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
