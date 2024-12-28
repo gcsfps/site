@@ -1,69 +1,81 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 
 interface User {
   id: string;
   email: string;
   type: string;
+  name: string;
+  establishmentName?: string;
+  phone?: string;
+  description?: string;
+  profileImage?: string;
+  coverImage?: string;
+  address?: {
+    cep: string;
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+  };
+  openingHours?: {
+    [key: string]: {
+      open: string;
+      close: string;
+    };
+  };
+  socialMedia?: {
+    instagram?: string;
+    facebook?: string;
+    whatsapp?: string;
+  };
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
   isAuthenticated: boolean;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  token: null,
-  login: () => {},
-  logout: () => {},
   isAuthenticated: false,
+  logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    // Verificar se há token no localStorage
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      }
-    }
-  }, []);
-
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    await signOut({ redirect: false });
     router.push('/login');
   };
+
+  const user = session?.user ? {
+    id: session.user.id as string,
+    email: session.user.email as string,
+    name: session.user.name as string,
+    type: session.user.type as string,
+    establishmentName: session.user.establishmentName,
+    phone: session.user.phone,
+    description: session.user.description,
+    profileImage: session.user.profileImage,
+    coverImage: session.user.coverImage,
+    address: session.user.address,
+    openingHours: session.user.openingHours,
+    socialMedia: session.user.socialMedia,
+  } : null;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        login,
+        isAuthenticated: status === 'authenticated',
         logout,
-        isAuthenticated: !!token,
       }}
     >
       {children}

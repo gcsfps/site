@@ -32,13 +32,13 @@ export default function EditProfile() {
     },
     description: '',
     openingHours: {
-      monday: { open: '', close: '' },
-      tuesday: { open: '', close: '' },
-      wednesday: { open: '', close: '' },
-      thursday: { open: '', close: '' },
-      friday: { open: '', close: '' },
-      saturday: { open: '', close: '' },
-      sunday: { open: '', close: '' },
+      segunda: { open: '', close: '' },
+      terca: { open: '', close: '' },
+      quarta: { open: '', close: '' },
+      quinta: { open: '', close: '' },
+      sexta: { open: '', close: '' },
+      sabado: { open: '', close: '' },
+      domingo: { open: '', close: '' },
     },
     socialMedia: {
       instagram: '',
@@ -114,59 +114,83 @@ export default function EditProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
 
     try {
       // Upload das imagens primeiro (se houver)
-      let profileImageUrl = user?.profileImage;
-      let coverImageUrl = user?.coverImage;
+      let profileImageUrl = previewProfile;
+      let coverImageUrl = previewCover;
 
       if (profileImage) {
         const formData = new FormData();
         formData.append('file', profileImage);
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const uploadData = await uploadRes.json();
-        profileImageUrl = uploadData.url;
+        try {
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            profileImageUrl = uploadData.url;
+          }
+        } catch (error) {
+          console.error('Erro no upload da imagem de perfil:', error);
+        }
       }
 
       if (coverImage) {
         const formData = new FormData();
         formData.append('file', coverImage);
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const uploadData = await uploadRes.json();
-        coverImageUrl = uploadData.url;
+        try {
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            coverImageUrl = uploadData.url;
+          }
+        } catch (error) {
+          console.error('Erro no upload da imagem de capa:', error);
+        }
       }
 
       // Atualizar perfil
-      const response = await fetch('/api/profile/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          profileImage: profileImageUrl,
-          coverImage: coverImageUrl,
-        }),
-      });
+      const updateData = {
+        name: formData.name,
+        establishmentName: formData.establishmentName,
+        phone: formData.phone || '',
+        description: formData.description || '',
+        address: formData.address || {},
+        openingHours: formData.openingHours || {},
+        socialMedia: formData.socialMedia || {},
+        profileImage: profileImageUrl,
+        coverImage: coverImageUrl,
+      };
 
-      if (response.ok) {
-        setSuccess('Perfil atualizado com sucesso!');
-        router.push('/profile');
-      } else {
-        const data = await response.json();
-        setError(data.message || 'Erro ao atualizar perfil');
+      try {
+        const response = await fetch('/api/profile/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(updateData),
+        });
+
+        if (response.ok) {
+          // Forçar atualização da sessão
+          await router.push('/profile');
+          // Recarregar a página para atualizar a sessão
+          window.location.reload();
+        } else {
+          console.error('Erro ao atualizar perfil');
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
       }
-    } catch (err) {
-      setError('Erro ao atualizar perfil');
     } finally {
       setLoading(false);
     }
@@ -201,7 +225,7 @@ export default function EditProfile() {
               {/* Imagens */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ImageUpload
-                  currentImage={user?.profileImage}
+                  currentImage={previewProfile}
                   onImageChange={(file) => handleImageChange(file, 'profile')}
                   aspectRatio={1}
                   label="Foto de Perfil"
@@ -209,7 +233,7 @@ export default function EditProfile() {
                 />
 
                 <ImageUpload
-                  currentImage={user?.coverImage}
+                  currentImage={previewCover}
                   onImageChange={(file) => handleImageChange(file, 'cover')}
                   aspectRatio={16/9}
                   label="Foto de Capa"
@@ -245,15 +269,14 @@ export default function EditProfile() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="input-field"
-                    required
                   />
                 </div>
               </div>
 
               {/* Endereço */}
               <AddressForm
-                address={formData.address}
-                onChange={(address: AddressData) => setFormData(prev => ({ ...prev, address }))}
+                initialData={formData.address}
+                onAddressChange={(address: AddressData) => setFormData(prev => ({ ...prev, address }))}
               />
 
               {/* Descrição */}
@@ -267,7 +290,6 @@ export default function EditProfile() {
                   value={formData.description}
                   onChange={handleChange}
                   className="input-field h-32"
-                  required
                 />
               </div>
 

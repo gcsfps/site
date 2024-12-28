@@ -28,6 +28,14 @@ export const authOptions = {
           email: user.email,
           name: user.name,
           type: user.type,
+          establishmentName: user.establishmentName,
+          phone: user.phone,
+          description: user.description,
+          profileImage: user.profileImage,
+          coverImage: user.coverImage,
+          address: user.address,
+          openingHours: user.openingHours,
+          socialMedia: user.socialMedia,
         };
       }
     })
@@ -40,13 +48,32 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.type = user.type;
+        token.establishmentName = user.establishmentName;
+        token.phone = user.phone;
+        token.description = user.description;
+        token.profileImage = user.profileImage;
+        token.coverImage = user.coverImage;
+        token.address = user.address;
+        token.openingHours = user.openingHours;
+        token.socialMedia = user.socialMedia;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.type = token.type;
+        session.user = {
+          ...session.user,
+          id: token.id,
+          type: token.type,
+          establishmentName: token.establishmentName,
+          phone: token.phone,
+          description: token.description,
+          profileImage: token.profileImage,
+          coverImage: token.coverImage,
+          address: token.address,
+          openingHours: token.openingHours,
+          socialMedia: token.socialMedia,
+        };
       }
       return session;
     }
@@ -55,6 +82,6 @@ export const authOptions = {
     signIn: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
-};
+}
 
 export default NextAuth(authOptions);

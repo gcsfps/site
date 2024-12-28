@@ -3,10 +3,70 @@ export interface IUser {
   id?: string;
   name: string;
   email: string;
-  whatsapp: string;
   type: 'organizer' | 'presenca_vip';
-  password: string;
-  subscription?: ISubscription; // Apenas para organizadores
+  password?: string;
+  establishmentName?: string;
+  phone?: string;
+  description?: string;
+  profileImage?: string;
+  coverImage?: string;
+  address?: {
+    cep: string;
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+  };
+  openingHours?: {
+    [key: string]: {
+      open: string;
+      close: string;
+    };
+  };
+  socialMedia?: {
+    instagram?: string;
+    facebook?: string;
+    whatsapp?: string;
+  };
+}
+
+// Tipos para NextAuth
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      type: 'organizer' | 'presenca_vip';
+      establishmentName?: string;
+      phone?: string;
+      description?: string;
+      profileImage?: string;
+      coverImage?: string;
+      address?: {
+        cep: string;
+        street: string;
+        number: string;
+        complement?: string;
+        neighborhood?: string;
+        city?: string;
+        state?: string;
+      };
+      openingHours?: {
+        [key: string]: {
+          open: string;
+          close: string;
+        };
+      };
+      socialMedia?: {
+        instagram?: string;
+        facebook?: string;
+        whatsapp?: string;
+      };
+    }
+  }
 }
 
 // Tipos para Perfis de Presença VIP
@@ -49,16 +109,19 @@ export interface ISubscription {
 // Tipos para Eventos
 export interface IEvent {
   id?: string;
-  name: string;
-  date: Date;
-  location: string;
-  payment: number;
   organizerId: string;
-  totalSpots: number;
-  availableSpots: number;
-  status: 'available' | 'full';
-  flyer: string;
+  title: string;
   description: string;
+  date: Date;
+  time: string;
+  location: string;
+  maxPresences: number;
+  currentPresences: number;
+  status: 'draft' | 'published' | 'cancelled' | 'finished';
+  requirements?: string[];
+  benefits?: string[];
+  photos?: string[];
+  categories?: string[];
 }
 
 // Tipos para Candidaturas
