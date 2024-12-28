@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
@@ -94,6 +94,34 @@ export default function SubscriptionPlans() {
   const router = useRouter();
   const { user } = useAuth();
 
+  useEffect(() => {
+    // Se já é assinante, redireciona para eventos
+    if (user?.subscription?.status === 'active') {
+      router.push('/events');
+    }
+  }, [user, router]);
+
+  // Se está carregando ou é assinante, mostra loading
+  if (!user || user?.subscription?.status === 'active') {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-dark-900 py-20">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center">Carregando...</div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const handleSubscribe = (planName: string) => {
+    setSelectedPlan(planName);
+    const account = testAccounts.find(acc => acc.plan === planName);
+    alert(`Conta de teste para o plano ${planName}:
+Email: ${account?.email}
+Senha: ${account?.password}`);
+  };
+
   // Função para formatar a data
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -101,15 +129,6 @@ export default function SubscriptionPlans() {
       month: 'long',
       year: 'numeric'
     });
-  };
-
-  const handleSubscribe = (planName: string) => {
-    setSelectedPlan(planName);
-    // Em produção, aqui redirecionaria para o checkout
-    const account = testAccounts.find(acc => acc.plan === planName);
-    alert(`Conta de teste para o plano ${planName}:
-Email: ${account?.email}
-Senha: ${account?.password}`);
   };
 
   return (

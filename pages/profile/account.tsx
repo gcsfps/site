@@ -5,6 +5,7 @@ import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import { IUser } from '../../src/types';
 import Link from 'next/link';
+import PlanIcon from '../../components/PlanIcon'; // Import the PlanIcon component
 
 export default function Account() {
   const { data: session, status } = useSession();
@@ -186,30 +187,31 @@ export default function Account() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-gray-400 mb-1">Plano</label>
-                      <div className="flex items-center space-x-2">
-                        <div className={`
-                          px-3 py-1 rounded-full text-sm font-medium text-white
-                          bg-gradient-to-r ${
-                            userData.subscription?.plan === 'Ultimate'
-                              ? 'from-purple-600 to-pink-600'
-                              : userData.subscription?.plan === 'Premium'
-                              ? 'from-blue-600 to-cyan-600'
-                              : 'from-gray-600 to-gray-400'
-                          }
-                        `}>
-                          {userData.subscription?.plan || 'Sem plano'}
+                      <div className="flex items-center space-x-3">
+                        <PlanIcon plan={userData.subscription?.plan || 'Basic'} size="lg" />
+                        <div>
+                          <div className="text-lg font-medium">
+                            {userData.subscription?.plan || 'Sem plano'}
+                          </div>
+                          {userData.subscription?.isPermanent && (
+                            <span className="text-sm text-green-400">
+                              Acesso permanente
+                            </span>
+                          )}
                         </div>
-                        {userData.subscription?.isPermanent && (
-                          <span className="text-green-400 text-sm">Permanente</span>
-                        )}
                       </div>
                     </div>
                     <div>
                       <label className="block text-gray-400 mb-1">Status</label>
-                      <div className={`text-gray-200 capitalize ${
+                      <div className={`flex items-center space-x-2 ${
                         userData.subscription?.status === 'active' ? 'text-green-400' : 'text-red-400'
                       }`}>
-                        {userData.subscription?.status === 'active' ? 'Ativa' : 'Inativa'}
+                        <div className={`w-2 h-2 rounded-full ${
+                          userData.subscription?.status === 'active' ? 'bg-green-400' : 'bg-red-400'
+                        }`} />
+                        <span className="capitalize">
+                          {userData.subscription?.status === 'active' ? 'Ativa' : 'Inativa'}
+                        </span>
                       </div>
                     </div>
                     {!userData.subscription?.isPermanent && userData.subscription?.endDate && (
@@ -225,9 +227,7 @@ export default function Account() {
                         href="/subscription/plans"
                         className="btn-secondary inline-block"
                       >
-                        {userData.subscription?.status === 'active'
-                          ? 'Ver Benefícios'
-                          : 'Ver Planos'}
+                        Ver Benefícios do Plano
                       </Link>
                     </div>
                   </div>

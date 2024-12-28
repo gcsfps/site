@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserIcon, CalendarIcon, ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ContactSidebar from './ContactSidebar';
 import SubscriptionBadge from './SubscriptionBadge';
+import { Menu, MenuButton, MenuItem, MenuItems, Transition, Fragment } from '@headlessui/react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -70,25 +71,67 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-4">
               {/* User Info */}
               {user && (
-                <div className="hidden md:flex items-center space-x-2 text-gray-300">
-                  <span className="text-sm font-medium">{user.email}</span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-dark-800 capitalize">
-                    {user.type === 'organizer' ? 'Promoter' : 'Presença'}
-                  </span>
-                </div>
+                <Menu as="div" className="relative ml-3">
+                  <div>
+                    <Menu.Button className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-800 focus:ring-white">
+                      <span className="sr-only">Abrir menu do usuário</span>
+                      <SubscriptionBadge />
+                    </Menu.Button>
+                  </div>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 w-48 py-1 mt-2 origin-top-right bg-dark-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            href="/profile/account"
+                            className={`${
+                              active ? 'bg-dark-700' : ''
+                            } block px-4 py-2 text-sm text-gray-300`}
+                          >
+                            Minha Conta
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      {user?.subscription?.status === 'active' && (
+                        <Menu.Item>
+                          {({ active }) => (
+                            <Link
+                              href="/profile/account#subscription"
+                              className={`${
+                                active ? 'bg-dark-700' : ''
+                              } block px-4 py-2 text-sm text-gray-300`}
+                            >
+                              Minha Assinatura
+                            </Link>
+                          )}
+                        </Menu.Item>
+                      )}
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={handleLogout}
+                            className={`${
+                              active ? 'bg-dark-700' : ''
+                            } block w-full text-left px-4 py-2 text-sm text-gray-300`}
+                          >
+                            Sair
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
               )}
               {/* Login/Logout Button */}
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <SubscriptionBadge />
-                  <button
-                    onClick={handleLogout}
-                    className="text-gray-300 hover:text-white transition-colors"
-                  >
-                    Sair
-                  </button>
-                </div>
-              ) : (
+              {!user && (
                 <Link
                   href="/login"
                   className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
