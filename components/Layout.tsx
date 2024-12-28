@@ -136,7 +136,7 @@ export default function Layout({ children }: LayoutProps) {
                   href="/login"
                   className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
                 >
-                  <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
+                  <UserIcon className="h-5 w-5 mr-2" />
                   Entrar
                 </Link>
               )}
