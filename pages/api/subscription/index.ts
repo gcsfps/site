@@ -24,13 +24,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startDate: new Date().toISOString(),
         endDate: oneYearFromNow.toISOString(),
         features: [
-          'Todos os benefícios do Premium',
-          'Eventos VIP exclusivos',
-          'Acesso antecipado a eventos',
-          'Suporte VIP 24/7',
-          'Encontros exclusivos'
+          'Eventos ilimitados',
+          'Presenças ilimitadas',
+          'Todos os recursos premium',
+          'Personalização de marca',
+          'Recursos exclusivos',
+          'Suporte VIP 24/7'
         ],
-        price: 99.90
+        price: 399.90
       };
 
       return res.status(200).json({ subscription });

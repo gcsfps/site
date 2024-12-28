@@ -100,29 +100,44 @@ export default function EventDetails() {
     }
 
     try {
-      // Simular envio da aplicação
-      const newApplication = {
-        id: Date.now().toString(),
-        eventId: event!.id,
-        presencaVipId: user.id,
-        status: 'pending',
-        applicationDate: new Date(),
-        presencaVipInfo: {
-          name: user.name,
-          whatsapp: user.whatsapp,
-          photo: '/images/profile-placeholder.jpg',
+      // Verificar se já tem outro evento no mesmo horário
+      const response = await fetch('/api/applications/check-conflicts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      };
+        body: JSON.stringify({
+          eventId: event!.id,
+          date: event!.date
+        })
+      });
 
-      // Atualizar estado local
-      mockApplications[event!.id] = [
-        ...(mockApplications[event!.id] || []),
-        newApplication,
-      ];
+      const data = await response.json();
+      
+      if (data.hasConflict) {
+        alert('Você já tem um evento aprovado neste horário.');
+        return;
+      }
+
+      // Enviar candidatura
+      const applyResponse = await fetch('/api/applications/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId: event!.id
+        })
+      });
+
+      if (!applyResponse.ok) {
+        throw new Error('Erro ao enviar candidatura');
+      }
 
       setHasApplied(true);
       setApplicationStatus('pending');
-      alert('Sua candidatura foi enviada com sucesso! Aguarde a aprovação do promoter.');
+      alert('Candidatura enviada com sucesso!');
+      
     } catch (error) {
       console.error('Erro ao enviar candidatura:', error);
       alert('Erro ao enviar candidatura. Tente novamente.');

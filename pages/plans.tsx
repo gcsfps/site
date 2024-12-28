@@ -5,32 +5,37 @@ import PlanIcon from '../components/PlanIcon';
 const plans = [
   {
     name: 'Basic',
-    price: 29.90,
+    price: 99.90,
     features: [
-      'Acesso a eventos básicos',
-      'Perfil personalizado',
-      'Suporte por email'
+      '3 eventos simultâneos',
+      '10 presenças por evento',
+      '4 flyers por mês',
+      'Suporte por email',
+      'Acesso aos perfis'
     ]
   },
   {
     name: 'Premium',
-    price: 59.90,
+    price: 199.90,
     features: [
-      'Todos os benefícios do Basic',
-      'Eventos premium exclusivos',
-      'Prioridade na lista de espera',
-      'Suporte prioritário'
+      '5 eventos simultâneos',
+      '20 presenças por evento',
+      'Flyers ilimitados',
+      'Analytics e relatórios',
+      'Suporte prioritário',
+      'Acesso aos perfis'
     ]
   },
   {
     name: 'Ultimate',
-    price: 149.90,
+    price: 399.90,
     features: [
-      'Todos os benefícios do Premium',
-      'Eventos VIP exclusivos',
-      'Acesso antecipado a eventos',
-      'Suporte VIP 24/7',
-      'Encontros exclusivos'
+      'Eventos ilimitados',
+      'Presenças ilimitadas',
+      'Todos os recursos premium',
+      'Personalização de marca',
+      'Recursos exclusivos',
+      'Suporte VIP 24/7'
     ]
   }
 ];

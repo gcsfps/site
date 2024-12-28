@@ -61,102 +61,104 @@ export default function Layout({ children }: LayoutProps) {
               {/* Lado direito - Login/Register ou Menu do Usuário */}
               <div className="flex items-center">
                 {user ? (
-                  <div className="relative group">
+                  <div className="relative inline-block">
                     {/* Menu Trigger */}
-                    <div className="flex items-center space-x-3 text-white px-5 py-2.5 rounded-xl bg-gradient-to-r from-accent-purple/20 to-accent-pink/20 backdrop-blur-md border border-white/10 hover:border-white/20 shadow-lg hover:shadow-accent-purple/20 transition-all duration-300 cursor-pointer">
-                      {subscription?.plan && (
-                        <div className="flex-shrink-0">
-                          <PlanIcon plan={subscription.plan as 'Ultimate' | 'Premium' | 'Basic'} size="sm" />
-                        </div>
-                      )}
-                      <span className="font-medium">Olá, {firstName}</span>
-                      <svg className="w-5 h-5 text-gray-300 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                    
-                    {/* Menu dropdown que aparece no hover */}
-                    <div className="absolute right-0 w-72 mt-2 pt-2 z-50">
-                      <div className="transform opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-700 delay-[300ms] group-hover:delay-0 origin-top">
-                        <div className="py-2 bg-dark-800/95 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-white/10 border border-white/5">
-                          {/* Header do Menu */}
-                          <div className="px-5 py-4 border-b border-white/5">
-                            <p className="text-sm text-gray-400 mb-1">Logado como</p>
-                            <p className="text-sm font-medium text-white truncate">{user.email}</p>
-                            {subscription?.status === 'active' && (
-                              <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-purple/20 text-accent-pink border border-accent-purple/20">
-                                Plano {subscription.plan}
-                              </div>
-                            )}
+                    <div className="group">
+                      <button className="flex items-center space-x-3 text-white px-5 py-2.5 rounded-xl bg-gradient-to-r from-accent-purple/20 to-accent-pink/20 backdrop-blur-md border border-white/10 hover:border-white/20 shadow-lg hover:shadow-accent-purple/20 transition-all duration-300">
+                        {subscription?.plan && (
+                          <div className="flex-shrink-0">
+                            <PlanIcon plan={subscription.plan as 'Ultimate' | 'Premium' | 'Basic'} size="sm" />
                           </div>
-                          
-                          {/* Links Principais */}
-                          <div className="py-2 px-2">
-                            <Link
-                              href="/profile/account"
-                              className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Minha Conta</span>
-                            </Link>
+                        )}
+                        <span className="font-medium">Olá, {firstName}</span>
+                        <svg className="w-5 h-5 text-gray-300 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Menu dropdown que aparece no hover */}
+                      <div className="absolute right-0 w-72 mt-2 pt-2 z-[100] pointer-events-none group-hover:pointer-events-auto">
+                        <div className="transform opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-top">
+                          <div className="py-2 bg-dark-800/95 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-white/10 border border-white/5">
+                            {/* Header do Menu */}
+                            <div className="px-5 py-4 border-b border-white/5">
+                              <p className="text-sm text-gray-400 mb-1">Logado como</p>
+                              <p className="text-sm font-medium text-white truncate">{user.email}</p>
+                              {subscription?.status === 'active' && (
+                                <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-purple/20 text-accent-pink border border-accent-purple/20">
+                                  Plano {subscription.plan}
+                                </div>
+                              )}
+                            </div>
                             
-                            <Link
-                              href="/profile"
-                              className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                              <span>Meu Perfil</span>
-                            </Link>
+                            {/* Links Principais */}
+                            <div className="py-2 px-2">
+                              <Link
+                                href="/profile/account"
+                                className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Minha Conta</span>
+                              </Link>
+                              
+                              <Link
+                                href="/profile"
+                                className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>Meu Perfil</span>
+                              </Link>
+                              
+                              <Link
+                                href="/profile/subscription"
+                                className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <span>Assinatura</span>
+                              </Link>
+                            </div>
                             
-                            <Link
-                              href="/profile/subscription"
-                              className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                              </svg>
-                              <span>Assinatura</span>
-                            </Link>
-                          </div>
-                          
-                          {/* Links Secundários */}
-                          <div className="py-2 px-2 border-t border-white/5">
-                            <Link
-                              href="/events"
-                              className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <span>Eventos</span>
-                            </Link>
+                            {/* Links Secundários */}
+                            <div className="py-2 px-2 border-t border-white/5">
+                              <Link
+                                href="/events"
+                                className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Eventos</span>
+                              </Link>
+                              
+                              <Link
+                                href="/promoters"
+                                className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <span>Promoters</span>
+                              </Link>
+                            </div>
                             
-                            <Link
-                              href="/promoters"
-                              className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                              <span>Promoters</span>
-                            </Link>
-                          </div>
-                          
-                          {/* Logout */}
-                          <div className="py-2 px-2 border-t border-white/5">
-                            <button
-                              onClick={handleLogout}
-                              className="flex items-center w-full px-4 py-2.5 text-sm text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/5 transition-colors duration-200"
-                            >
-                              <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                              </svg>
-                              <span>Sair da Conta</span>
-                            </button>
+                            {/* Logout */}
+                            <div className="py-2 px-2 border-t border-white/5">
+                              <button
+                                onClick={handleLogout}
+                                className="flex items-center w-full px-4 py-2.5 text-sm text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/5 transition-colors duration-200"
+                              >
+                                <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                <span>Sair da Conta</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>

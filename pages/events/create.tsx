@@ -18,6 +18,7 @@ export default function CreateEvent() {
   });
   const [flyer, setFlyer] = useState<File | null>(null);
   const [flyerPreview, setFlyerPreview] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFlyerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -29,24 +30,55 @@ export default function CreateEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
       // Primeiro fazer upload do flyer
       if (!flyer) {
         alert('Por favor, selecione um flyer para o evento');
+        setIsSubmitting(false);
         return;
       }
 
-      // Aqui você implementará o upload do flyer e criação do evento
-      // Exemplo de FormData para upload
-      const formDataToSend = new FormData();
-      formDataToSend.append('flyer', flyer);
-      formDataToSend.append('data', JSON.stringify(formData));
+      // Upload do flyer
+      const formDataFlyer = new FormData();
+      formDataFlyer.append('file', flyer);
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataFlyer
+      });
 
-      // Implementar chamada à API
+      if (!uploadResponse.ok) {
+        throw new Error('Erro ao fazer upload do flyer');
+      }
+
+      const { fileUrl } = await uploadResponse.json();
+
+      // Criar o evento
+      const eventData = {
+        ...formData,
+        flyerUrl: fileUrl
+      };
+
+      const createEventResponse = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData)
+      });
+
+      if (!createEventResponse.ok) {
+        throw new Error('Erro ao criar evento');
+      }
+
       router.push('/events/manage');
     } catch (error) {
       console.error('Erro ao criar evento:', error);
       alert('Erro ao criar evento. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -246,8 +278,8 @@ export default function CreateEvent() {
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn-primary">
-                Criar Evento
+              <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Criando...' : 'Criar Evento'}
               </button>
             </div>
           </form>
