@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  password      String
+  name          String
+  type          String    // "organizer" ou "user"
+  whatsapp      String?
+  subscription  Json?     // Dados da assinatura
+  
+  // Campos específicos para promoter/balada
+  establishmentName String?  // Nome da balada/estabelecimento
+  address          Json?     // Endereço completo (CEP, rua, número, etc.)
+  phone            String?   // Telefone de contato
+  description      String?   // Descrição do estabelecimento
+  profileImage     String?   // URL da foto de perfil
+  coverImage       String?   // URL da foto de capa
+  openingHours     Json?     // Horário de funcionamento
+  socialMedia      Json?     // Links de redes sociais
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  events        Event[]   @relation("EventOrganizer")
+  applications  Application[] @relation("UserApplications")
+}
+
+model Event {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  date            DateTime
+  time            String
+  location        String
+  totalSpots      Int
+  payment         Float
+  description     String
+  flyer           String?   // URL da imagem
+  organizerId     String    @db.ObjectId
+  organizer       User      @relation("EventOrganizer", fields: [organizerId], references: [id])
+  applications    Application[] @relation("EventApplications")
+  featured        Boolean   @default(false)  // Para destacar eventos na página inicial
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Application {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  eventId     String    @db.ObjectId
+  status      String    // "pending", "approved", "rejected"
+  user        User      @relation("UserApplications", fields: [userId], references: [id])
+  event       Event     @relation("EventApplications", fields: [eventId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

@@ -14,6 +14,7 @@ export default function Register() {
     type: 'presenca_vip'
   });
 
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -25,14 +26,37 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar lógica de registro aqui
-    console.log('Register:', formData);
-    router.push('/login');
-  };
+    setError('');
 
-  const handleSocialLogin = (provider: string) => {
-    // Implementar lógica de login social aqui
-    console.log('Social login with:', provider);
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          type: formData.type,
+          ...(formData.type === 'presenca_vip' ? { whatsapp: formData.whatsapp } : {})
+        }),
+      });
+
+      if (response.ok) {
+        router.push('/login?registered=true');
+      } else {
+        const data = await response.json();
+        setError(data.message || 'Erro ao registrar');
+      }
+    } catch (err) {
+      setError('Erro ao conectar com o servidor');
+    }
   };
 
   return (
@@ -71,7 +95,13 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-500 text-sm">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-gray-300 mb-2">
                   Nome Completo
@@ -102,21 +132,23 @@ export default function Register() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="whatsapp" className="block text-gray-300 mb-2">
-                  WhatsApp
-                </label>
-                <input
-                  type="tel"
-                  id="whatsapp"
-                  name="whatsapp"
-                  value={formData.whatsapp}
-                  onChange={handleChange}
-                  placeholder="(11) 99999-9999"
-                  className="input-field"
-                  required
-                />
-              </div>
+              {formData.type === 'presenca_vip' && (
+                <div>
+                  <label htmlFor="whatsapp" className="block text-gray-300 mb-2">
+                    WhatsApp
+                  </label>
+                  <input
+                    type="tel"
+                    id="whatsapp"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    placeholder="(11) 99999-9999"
+                    className="input-field"
+                    required
+                  />
+                </div>
+              )}
 
               <div>
                 <label htmlFor="password" className="block text-gray-300 mb-2">
@@ -160,7 +192,7 @@ export default function Register() {
                   Faça login
                 </Link>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>

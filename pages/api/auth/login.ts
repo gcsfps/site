@@ -1,74 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import prisma from '../../../src/lib/prisma';
 
-// Usuários de teste
-const TEST_USERS = {
-  basic: {
-    id: '1',
-    email: 'basic@test.com',
-    password: 'basic123',
-    type: 'organizer',
-    name: 'Promoter Basic',
-    subscription: {
-      plan: 'basic',
-      status: 'active',
-      features: {
-        maxEvents: 5,
-        maxPresencasPerEvent: 50,
-        analytics: false,
-        prioritySupport: false,
-        customBranding: false,
-        profileAccess: true,
-      }
-    }
-  },
-  premium: {
-    id: '2',
-    email: 'premium@test.com',
-    password: 'premium123',
-    type: 'organizer',
-    name: 'Promoter Premium',
-    subscription: {
-      plan: 'premium',
-      status: 'active',
-      features: {
-        maxEvents: 15,
-        maxPresencasPerEvent: 150,
-        analytics: true,
-        prioritySupport: true,
-        customBranding: false,
-        profileAccess: true,
-      }
-    }
-  },
-  ultimate: {
-    id: '3',
-    email: 'ultimate@test.com',
-    password: 'ultimate123',
-    type: 'organizer',
-    name: 'Promoter Ultimate',
-    subscription: {
-      plan: 'ultimate',
-      status: 'active',
-      features: {
-        maxEvents: -1,
-        maxPresencasPerEvent: -1,
-        analytics: true,
-        prioritySupport: true,
-        customBranding: true,
-        profileAccess: true,
-      }
-    }
-  },
-  presencaVip: {
-    id: '4',
-    email: 'presenca@test.com',
-    password: 'presenca123',
-    type: 'presenca_vip',
-    name: 'Presença VIP Test',
-    whatsapp: '11999999999'
-  }
-};
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export default async function handler(
   req: NextApiRequest,
@@ -81,25 +15,37 @@ export default async function handler(
   try {
     const { email, password } = req.body;
 
-    // Encontrar usuário
-    const user = Object.values(TEST_USERS).find(u => u.email === email);
-    
-    if (!user || user.password !== password) {
-      return res.status(401).json({ message: 'Credenciais inválidas' });
+    // Buscar usuário no banco
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Usuário não encontrado' });
+    }
+
+    // Verificar senha
+    if (user.password !== password) {
+      return res.status(401).json({ message: 'Senha incorreta' });
     }
 
     // Gerar token JWT
     const token = jwt.sign(
-      { userId: user.id, type: user.type },
-      'your-secret-key', // Em produção, use uma chave secreta do ambiente
+      { 
+        userId: user.id,
+        email: user.email,
+        type: user.type
+      },
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    // Retornar usuário e token (sem a senha)
+    // Remover senha do objeto do usuário antes de enviar
     const { password: _, ...userWithoutPassword } = user;
+
     res.status(200).json({
-      user: userWithoutPassword,
-      token
+      token,
+      user: userWithoutPassword
     });
   } catch (error) {
     console.error('Login error:', error);
