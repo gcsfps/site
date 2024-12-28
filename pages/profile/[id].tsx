@@ -14,35 +14,27 @@ export default function Profile() {
   const [canViewFullProfile, setCanViewFullProfile] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      // Simulação de dados do perfil
-      const mockProfile: IProfile = {
-        id: '1',
-        userId: id as string,
-        profilePhoto: '/images/profile-placeholder.jpg',
-        coverPhoto: '/images/cover-placeholder.jpg',
-        age: 25,
-        region: 'São Paulo, SP',
-        description: 'Amo festas e eventos exclusivos!',
-        instagram: '@presencavip',
-        height: '1.70m',
-        weight: '60kg',
-        interests: ['Festas', 'Música Eletrônica', 'Networking'],
-        photos: [
-          '/images/gallery/1.jpg',
-          '/images/gallery/2.jpg',
-          '/images/gallery/3.jpg',
-        ],
-        isPrivate: true,
-        reputation: 4.8,
-      };
+    const fetchProfile = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/api/profile/${id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProfile(data);
+            setIsOwner(user?.id === id);
+            setCanViewFullProfile(
+              isOwner || (user?.type === 'organizer' && user?.subscription?.status === 'active')
+            );
+          } else {
+            console.error('Erro ao buscar perfil');
+          }
+        } catch (error) {
+          console.error('Erro ao buscar perfil:', error);
+        }
+      }
+    };
 
-      setProfile(mockProfile);
-      setIsOwner(user?.id === id);
-      setCanViewFullProfile(
-        isOwner || (user?.type === 'organizer' && user?.subscription?.status === 'active')
-      );
-    }
+    fetchProfile();
   }, [id, user, isOwner]);
 
   if (!profile) {

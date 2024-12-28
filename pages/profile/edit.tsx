@@ -115,8 +115,16 @@ export default function EditProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
+      // Validação básica
+      if (!formData.name || !formData.establishmentName) {
+        setError('Nome e nome do estabelecimento são obrigatórios');
+        return;
+      }
+
       // Upload das imagens primeiro (se houver)
       let profileImageUrl = previewProfile;
       let coverImageUrl = previewCover;
@@ -133,9 +141,13 @@ export default function EditProfile() {
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json();
             profileImageUrl = uploadData.url;
+          } else {
+            throw new Error('Erro ao fazer upload da imagem de perfil');
           }
         } catch (error) {
           console.error('Erro no upload da imagem de perfil:', error);
+          setError('Erro ao fazer upload da imagem de perfil');
+          return;
         }
       }
 
@@ -151,46 +163,104 @@ export default function EditProfile() {
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json();
             coverImageUrl = uploadData.url;
+          } else {
+            throw new Error('Erro ao fazer upload da imagem de capa');
           }
         } catch (error) {
           console.error('Erro no upload da imagem de capa:', error);
+          setError('Erro ao fazer upload da imagem de capa');
+          return;
         }
       }
 
-      // Atualizar perfil
+      // Prepara os dados para atualização
       const updateData = {
-        name: formData.name,
-        establishmentName: formData.establishmentName,
-        phone: formData.phone || '',
-        description: formData.description || '',
-        address: formData.address || {},
-        openingHours: formData.openingHours || {},
-        socialMedia: formData.socialMedia || {},
+        name: formData.name.trim(),
+        establishmentName: formData.establishmentName.trim(),
+        phone: formData.phone?.trim() || '',
+        description: formData.description?.trim() || '',
+        address: {
+          cep: formData.address.cep?.trim() || '',
+          street: formData.address.street?.trim() || '',
+          number: formData.address.number?.trim() || '',
+          complement: formData.address.complement?.trim() || '',
+          neighborhood: formData.address.neighborhood?.trim() || '',
+          city: formData.address.city?.trim() || '',
+          state: formData.address.state?.trim() || '',
+        },
+        openingHours: {
+          segunda: {
+            open: formData.openingHours.segunda.open?.trim() || '',
+            close: formData.openingHours.segunda.close?.trim() || '',
+          },
+          terca: {
+            open: formData.openingHours.terca.open?.trim() || '',
+            close: formData.openingHours.terca.close?.trim() || '',
+          },
+          quarta: {
+            open: formData.openingHours.quarta.open?.trim() || '',
+            close: formData.openingHours.quarta.close?.trim() || '',
+          },
+          quinta: {
+            open: formData.openingHours.quinta.open?.trim() || '',
+            close: formData.openingHours.quinta.close?.trim() || '',
+          },
+          sexta: {
+            open: formData.openingHours.sexta.open?.trim() || '',
+            close: formData.openingHours.sexta.close?.trim() || '',
+          },
+          sabado: {
+            open: formData.openingHours.sabado.open?.trim() || '',
+            close: formData.openingHours.sabado.close?.trim() || '',
+          },
+          domingo: {
+            open: formData.openingHours.domingo.open?.trim() || '',
+            close: formData.openingHours.domingo.close?.trim() || '',
+          },
+        },
+        socialMedia: {
+          instagram: formData.socialMedia.instagram?.trim() || '',
+          facebook: formData.socialMedia.facebook?.trim() || '',
+          whatsapp: formData.socialMedia.whatsapp?.trim() || '',
+        },
         profileImage: profileImageUrl,
         coverImage: coverImageUrl,
       };
 
-      try {
-        const response = await fetch('/api/profile/update', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(updateData),
-        });
+      console.log('Enviando dados:', JSON.stringify(updateData, null, 2));
 
-        if (response.ok) {
-          // Forçar atualização da sessão
-          await router.push('/profile');
-          // Recarregar a página para atualizar a sessão
-          window.location.reload();
-        } else {
-          console.error('Erro ao atualizar perfil');
+      const response = await fetch('/api/profile/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updateData),
+      });
+
+      const data = await response.json();
+      console.log('Resposta:', data);
+
+      if (response.ok && data.success) {
+        setSuccess('Perfil atualizado com sucesso!');
+        // Atualiza a sessão antes de redirecionar
+        try {
+          await fetch('/api/auth/session', { method: 'GET' });
+          // Aguarda 2 segundos antes de redirecionar
+          setTimeout(() => {
+            router.push('/profile');
+          }, 2000);
+        } catch (error) {
+          console.error('Erro ao atualizar sessão:', error);
+          setError('Erro ao atualizar sessão. Por favor, faça login novamente.');
         }
-      } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
+      } else {
+        setError(data.message || 'Erro ao atualizar perfil');
+        console.error('Erro na resposta:', data);
       }
+    } catch (error: any) {
+      console.error('Erro ao atualizar perfil:', error);
+      setError(error.message || 'Erro ao atualizar perfil. Tente novamente.');
     } finally {
       setLoading(false);
     }

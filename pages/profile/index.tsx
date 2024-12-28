@@ -1,14 +1,16 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiMapPin, FiClock, FiPhone, FiInstagram, FiFacebook, FiMessageCircle } from 'react-icons/fi';
+import { IUser } from '../../src/types';
 
 export default function Profile() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [userData, setUserData] = useState<IUser | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -16,7 +18,27 @@ export default function Profile() {
     }
   }, [status, router]);
 
-  if (status === 'loading') {
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch(`/api/profile/${session.user.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setUserData(data);
+          } else {
+            console.error('Erro ao buscar dados do usuário');
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [session]);
+
+  if (status === 'loading' || !userData) {
     return (
       <Layout>
         <div className="min-h-screen bg-dark-900 py-20">
@@ -34,8 +56,6 @@ export default function Profile() {
     return null;
   }
 
-  const user = session.user;
-
   return (
     <Layout>
       <div className="min-h-screen bg-dark-900 py-20">
@@ -43,9 +63,9 @@ export default function Profile() {
           <div className="glass-card p-8">
             {/* Imagem de Capa */}
             <div className="relative w-full h-48 mb-8 rounded-lg overflow-hidden bg-gray-800">
-              {user.coverImage ? (
+              {userData.coverImage ? (
                 <Image
-                  src={user.coverImage}
+                  src={userData.coverImage}
                   alt="Capa"
                   fill
                   style={{ objectFit: 'cover' }}
@@ -62,9 +82,9 @@ export default function Profile() {
               {/* Imagem de Perfil */}
               <div className="flex-shrink-0">
                 <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-800">
-                  {user.profileImage ? (
+                  {userData.profileImage ? (
                     <Image
-                      src={user.profileImage}
+                      src={userData.profileImage}
                       alt="Perfil"
                       fill
                       style={{ objectFit: 'cover' }}
@@ -73,7 +93,7 @@ export default function Profile() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-4xl text-gray-600">
-                        {user.name?.[0]?.toUpperCase() || '?'}
+                        {userData.name?.[0]?.toUpperCase() || '?'}
                       </span>
                     </div>
                   )}
@@ -85,10 +105,10 @@ export default function Profile() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h1 className="text-3xl font-bold">
-                      <span className="gradient-text">{user.establishmentName || user.name}</span>
+                      <span className="gradient-text">{userData.establishmentName || userData.name}</span>
                     </h1>
-                    {user.description ? (
-                      <p className="text-gray-300 mt-2">{user.description}</p>
+                    {userData.description ? (
+                      <p className="text-gray-300 mt-2">{userData.description}</p>
                     ) : (
                       <p className="text-gray-500 mt-2 italic">Adicione uma descrição do seu estabelecimento</p>
                     )}
@@ -100,176 +120,89 @@ export default function Profile() {
                     Editar Perfil
                   </Link>
                 </div>
-              </div>
-            </div>
 
-            <div className="space-y-8">
-              {/* Informações de Contato */}
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-gray-200">
-                  Informações de Contato
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-2">
-                    <FiPhone className="text-accent-purple" />
-                    <div>
-                      <label className="block text-gray-400 text-sm">Telefone</label>
-                      <div className="text-gray-200">
-                        {user.phone || <span className="text-gray-500 italic">Adicione um telefone</span>}
-                      </div>
+                {/* Informações de Contato e Localização */}
+                <div className="mt-6 space-y-4">
+                  {userData.address && (userData.address.street || userData.address.city) && (
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <FiMapPin className="flex-shrink-0" />
+                      <span>
+                        {[
+                          userData.address.street,
+                          userData.address.number,
+                          userData.address.neighborhood,
+                          userData.address.city,
+                          userData.address.state
+                        ].filter(Boolean).join(', ')}
+                      </span>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 text-sm">Email</label>
-                    <div className="text-gray-200">{user.email}</div>
-                  </div>
-                </div>
-              </div>
+                  )}
 
-              {/* Endereço */}
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-gray-200 flex items-center gap-2">
-                  <FiMapPin />
-                  Endereço
-                </h2>
-                <div className="text-gray-200">
-                  {user.address && Object.values(user.address).some(value => value) ? (
-                    <>
-                      {user.address.street && (
-                        <div>
-                          {user.address.street}
-                          {user.address.number && `, ${user.address.number}`}
-                        </div>
+                  {userData.phone && (
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <FiPhone className="flex-shrink-0" />
+                      <span>{userData.phone}</span>
+                    </div>
+                  )}
+
+                  {/* Redes Sociais */}
+                  {userData.socialMedia && (
+                    <div className="flex gap-4 mt-4">
+                      {userData.socialMedia.instagram && (
+                        <a
+                          href={`https://instagram.com/${userData.socialMedia.instagram.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 hover:text-accent-purple transition-colors"
+                        >
+                          <FiInstagram size={20} />
+                        </a>
                       )}
-                      {user.address.complement && (
-                        <div>{user.address.complement}</div>
+                      {userData.socialMedia.facebook && (
+                        <a
+                          href={userData.socialMedia.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 hover:text-accent-purple transition-colors"
+                        >
+                          <FiFacebook size={20} />
+                        </a>
                       )}
-                      {user.address.neighborhood && (
-                        <div>{user.address.neighborhood}</div>
+                      {userData.socialMedia.whatsapp && (
+                        <a
+                          href={`https://wa.me/${userData.socialMedia.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 hover:text-accent-purple transition-colors"
+                        >
+                          <FiMessageCircle size={20} />
+                        </a>
                       )}
-                      {(user.address.city || user.address.state) && (
-                        <div>
-                          {user.address.city}
-                          {user.address.city && user.address.state && ' - '}
-                          {user.address.state}
-                        </div>
-                      )}
-                      {user.address.cep && (
-                        <div>CEP: {user.address.cep}</div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-gray-500 italic">
-                      Adicione o endereço do estabelecimento
                     </div>
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Horário de Funcionamento */}
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-gray-200 flex items-center gap-2">
-                  <FiClock />
-                  Horário de Funcionamento
-                </h2>
-                {user.openingHours && Object.values(user.openingHours).some(hours => hours.open || hours.close) ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(user.openingHours).map(([day, hours]) => (
-                      <div key={day} className="flex items-center space-x-4">
-                        <span className="w-24 text-gray-400 capitalize">{day}</span>
-                        <div className="text-gray-200">
-                          {hours.open && hours.close ? (
-                            `${hours.open} às ${hours.close}`
-                          ) : (
-                            'Horário não definido'
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 italic">
-                    Adicione os horários de funcionamento
-                  </div>
-                )}
-              </div>
-
-              {/* Redes Sociais */}
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-gray-200">
-                  Redes Sociais
-                </h2>
-                {user.socialMedia && Object.values(user.socialMedia).some(value => value) ? (
-                  <div className="flex flex-wrap gap-6">
-                    {user.socialMedia.instagram && (
-                      <a
-                        href={`https://instagram.com/${user.socialMedia.instagram.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-accent-purple hover:text-accent-purple-light"
-                      >
-                        <FiInstagram size={20} />
-                        <span>Instagram</span>
-                      </a>
-                    )}
-                    {user.socialMedia.facebook && (
-                      <a
-                        href={user.socialMedia.facebook}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-accent-purple hover:text-accent-purple-light"
-                      >
-                        <FiFacebook size={20} />
-                        <span>Facebook</span>
-                      </a>
-                    )}
-                    {user.socialMedia.whatsapp && (
-                      <a
-                        href={`https://wa.me/${user.socialMedia.whatsapp.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-accent-purple hover:text-accent-purple-light"
-                      >
-                        <FiMessageCircle size={20} />
-                        <span>WhatsApp</span>
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 italic">
-                    Adicione suas redes sociais
-                  </div>
-                )}
-              </div>
-
-              {/* Ações */}
-              <div className="pt-6 border-t border-gray-700">
-                <h2 className="text-xl font-semibold mb-4 text-gray-200">
-                  Ações Rápidas
-                </h2>
-                <div className="flex flex-wrap gap-4">
-                  {user.type === 'presenca_vip' ? (
-                    <>
-                      <Link href="/events" className="btn-primary">
-                        Ver Eventos
-                      </Link>
-                      <Link href="/subscription" className="btn-secondary">
-                        Gerenciar Assinatura
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/events/manage" className="btn-primary">
-                        Gerenciar Eventos
-                      </Link>
-                      <Link href="/events/create" className="btn-secondary">
-                        Criar Novo Evento
-                      </Link>
-                    </>
-                  )}
+            {/* Horário de Funcionamento */}
+            {userData.openingHours && Object.keys(userData.openingHours).length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Horário de Funcionamento</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(userData.openingHours).map(([day, hours]) => (
+                    <div key={day} className="flex items-center gap-2 text-gray-300">
+                      <FiClock className="flex-shrink-0" />
+                      <span className="capitalize">{day}:</span>
+                      <span>
+                        {hours.open && hours.close
+                          ? `${hours.open} - ${hours.close}`
+                          : 'Fechado'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
