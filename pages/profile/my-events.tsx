@@ -15,30 +15,29 @@ interface Event {
 export default function MyEvents() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) {
-      router.push('/login');
-      return;
+    if (session?.user?.type === 'organizer') {
+      fetchEvents();
     }
-
-    // Fetch user's events
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch('/api/events/my-events');
-        const data = await response.json();
-        setEvents(data.events);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
   }, [session, router]);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/events/my-events');
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!session || session.user.type !== 'organizer') {
     return (
@@ -74,7 +73,7 @@ export default function MyEvents() {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-pink mx-auto"></div>
           </div>
-        ) : events && events.length === 0 ? (
+        ) : !Array.isArray(events) || events.length === 0 ? (
           <div className="text-center py-12 bg-dark-800/50 rounded-2xl border border-white/5">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
