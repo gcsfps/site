@@ -6,6 +6,47 @@ import EventCarousel from '../components/EventCarousel';
 export default function Home() {
   return (
     <Layout>
+      {/* Carrossel de Eventos */}
+      <EventCarousel />
+
+      {/* Features Section com efeito parallax */}
+      <div className="bg-dark-800/90 backdrop-blur-sm py-32 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-transparent to-dark-900 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-purple bg-opacity-20 mb-6">
+                <CalendarIcon className="h-8 w-8 text-accent-purple" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Eventos Exclusivos</h3>
+              <p className="text-gray-400">
+                Acesso privilegiado aos eventos mais badalados da cidade.
+              </p>
+            </div>
+
+            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-pink bg-opacity-20 mb-6">
+                <UserGroupIcon className="h-8 w-8 text-accent-pink" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Network Premium</h3>
+              <p className="text-gray-400">
+                Conecte-se com pessoas influentes e expanda seu círculo social.
+              </p>
+            </div>
+
+            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-blue bg-opacity-20 mb-6">
+                <StarIcon className="h-8 w-8 text-accent-blue" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-4">Status VIP</h3>
+              <p className="text-gray-400">
+                Tratamento diferenciado e benefícios exclusivos em todos os eventos.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative min-h-screen">
         {/* Vídeo de fundo */}
@@ -50,47 +91,6 @@ export default function Home() {
                   Saiba Mais
                 </a>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Carrossel de Eventos */}
-      <EventCarousel />
-
-      {/* Features Section com efeito parallax */}
-      <div className="bg-dark-800/90 backdrop-blur-sm py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-transparent to-dark-900 pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-purple bg-opacity-20 mb-6">
-                <CalendarIcon className="h-8 w-8 text-accent-purple" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Eventos Exclusivos</h3>
-              <p className="text-gray-400">
-                Acesso privilegiado aos eventos mais badalados da cidade.
-              </p>
-            </div>
-
-            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-pink bg-opacity-20 mb-6">
-                <UserGroupIcon className="h-8 w-8 text-accent-pink" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Network Premium</h3>
-              <p className="text-gray-400">
-                Conecte-se com pessoas influentes e expanda seu círculo social.
-              </p>
-            </div>
-
-            <div className="glass-card p-8 transform hover:scale-105 transition-all duration-300">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent-blue bg-opacity-20 mb-6">
-                <StarIcon className="h-8 w-8 text-accent-blue" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Status VIP</h3>
-              <p className="text-gray-400">
-                Tratamento diferenciado e benefícios exclusivos em todos os eventos.
-              </p>
             </div>
           </div>
         </div>

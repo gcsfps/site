@@ -188,10 +188,19 @@ export default function Account() {
                     <div>
                       <label className="block text-gray-400 mb-1">Plano</label>
                       <div className="flex items-center space-x-3">
-                        <PlanIcon plan={userData.subscription?.plan || 'Basic'} size="lg" />
+                        <PlanIcon 
+                          plan={
+                            userData.subscription?.status === 'active' 
+                              ? (userData.subscription.plan as 'Ultimate' | 'Premium' | 'Basic') 
+                              : 'Basic'
+                          } 
+                          size="lg" 
+                        />
                         <div>
                           <div className="text-lg font-medium">
-                            {userData.subscription?.plan || 'Sem plano'}
+                            {userData.subscription?.status === 'active' 
+                              ? userData.subscription.plan 
+                              : 'Sem plano'}
                           </div>
                           {userData.subscription?.isPermanent && (
                             <span className="text-sm text-green-400">
