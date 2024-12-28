@@ -23,6 +23,21 @@ export default function CreateEvent() {
   const handleFlyerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Validar tamanho (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('O arquivo é muito grande. O tamanho máximo permitido é 5MB.');
+        e.target.value = '';
+        return;
+      }
+
+      // Validar tipo
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+        alert('Formato de arquivo não suportado. Use JPEG, PNG ou GIF.');
+        e.target.value = '';
+        return;
+      }
+
       setFlyer(file);
       setFlyerPreview(URL.createObjectURL(file));
     }
@@ -33,50 +48,56 @@ export default function CreateEvent() {
     setIsSubmitting(true);
 
     try {
-      // Primeiro fazer upload do flyer
+      // Validar campos obrigatórios
+      const requiredFields = {
+        name: formData.name,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        totalSpots: formData.totalSpots,
+        payment: formData.payment,
+        description: formData.description
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([_, value]) => !value)
+        .map(([field]) => field);
+
+      if (missingFields.length > 0) {
+        alert(`Por favor, preencha os seguintes campos: ${missingFields.join(', ')}`);
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!flyer) {
         alert('Por favor, selecione um flyer para o evento');
         setIsSubmitting(false);
         return;
       }
 
-      // Upload do flyer
-      const formDataFlyer = new FormData();
-      formDataFlyer.append('file', flyer);
-      
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataFlyer
+      // Criar FormData com todos os campos
+      const formDataWithFlyer = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataWithFlyer.append(key, value.toString());
       });
+      formDataWithFlyer.append('flyer', flyer);
 
-      if (!uploadResponse.ok) {
-        throw new Error('Erro ao fazer upload do flyer');
-      }
-
-      const { fileUrl } = await uploadResponse.json();
-
-      // Criar o evento
-      const eventData = {
-        ...formData,
-        flyerUrl: fileUrl
-      };
-
+      // Enviar formulário
       const createEventResponse = await fetch('/api/events', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData)
+        body: formDataWithFlyer,
+        credentials: 'include'
       });
 
       if (!createEventResponse.ok) {
-        throw new Error('Erro ao criar evento');
+        const error = await createEventResponse.json();
+        throw new Error(error.message || 'Erro ao criar evento');
       }
 
       router.push('/events/manage');
     } catch (error) {
       console.error('Erro ao criar evento:', error);
-      alert('Erro ao criar evento. Tente novamente.');
+      alert(error instanceof Error ? error.message : 'Erro ao criar evento. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }

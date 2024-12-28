@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -39,41 +36,48 @@ model User {
   updatedAt        DateTime  @updatedAt
   events           Event[]   @relation("EventOrganizer")
   applications     Application[] @relation("UserApplications")
+  subscriptionInfo Subscription? @relation("UserSubscription")
 }
 
 model Event {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  id              String    @id @default(cuid()) @map("_id") @db.ObjectId
   name            String
+  description     String
   date            DateTime
   time            String
   location        String
+  flyerUrl        String?    // URL do flyer
   totalSpots      Int
+  availableSpots  Int
   payment         Float
-  description     String
-  flyer           String?   // URL da imagem
+  status          String    @default("active") // active, canceled, finished
+  featured        Boolean   @default(false)  // Para destacar eventos na página inicial
   organizerId     String    @db.ObjectId
   organizer       User      @relation("EventOrganizer", fields: [organizerId], references: [id])
   applications    Application[] @relation("EventApplications")
-  featured        Boolean   @default(false)  // Para destacar eventos na página inicial
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
 
 model Application {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String    @db.ObjectId
-  eventId     String    @db.ObjectId
-  status      String    // "pending", "approved", "rejected"
-  user        User      @relation("UserApplications", fields: [userId], references: [id])
-  event       Event     @relation("EventApplications", fields: [eventId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  presencaVipId  String    @db.ObjectId
+  eventId        String    @db.ObjectId
+  status         String    @default("pending") // pending, approved, rejected
+  presencaVip    User      @relation("UserApplications", fields: [presencaVipId], references: [id])
+  event          Event     @relation("EventApplications", fields: [eventId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([presencaVipId])
+  @@index([eventId])
+  @@unique([presencaVipId, eventId])
 }
 
 model Subscription {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
+  user        User     @relation("UserSubscription", fields: [userId], references: [id])
   plan        String   // "Ultimate", "Premium", "Basic"
   status      String   // "active", "inactive"
   startDate   DateTime @default(now())

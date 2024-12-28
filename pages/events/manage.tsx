@@ -28,7 +28,12 @@ export default function ManageEvents() {
           throw new Error('Erro ao buscar eventos');
         }
         const data = await response.json();
-        setEvents(data);
+        // Converter as datas para objetos Date
+        const eventsWithDates = data.map(event => ({
+          ...event,
+          date: new Date(event.date)
+        }));
+        setEvents(eventsWithDates);
       } catch (error) {
         console.error('Erro ao buscar eventos:', error);
       } finally {
@@ -144,13 +149,13 @@ export default function ManageEvents() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => router.push(`/events/${event.id}/edit`)}
-                          className="bg-dark-800 hover:bg-dark-700 text-white px-4 py-2 rounded-lg text-sm"
+                          className="bg-dark-800 hover:bg-dark-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => router.push(`/events/${event.id}/applications`)}
-                          className="bg-accent-purple hover:bg-accent-pink text-white px-4 py-2 rounded-lg text-sm"
+                          className="bg-accent-purple hover:bg-accent-pink text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                         >
                           Ver Candidaturas
                         </button>

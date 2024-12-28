@@ -1,292 +1,240 @@
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Layout from '../../../components/Layout';
-import { CalendarIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
-import { useAuth } from '../../../contexts/AuthContext';
-import { IEvent } from '../../../src/types';
+import Link from 'next/link';
+import { CalendarIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '../../../components/Icons';
 
-// Dados temporários - mesmos eventos da página principal
-const mockEvents: IEvent[] = [
-  {
-    id: '1',
-    name: 'Noite Eletrônica',
-    date: new Date('2024-12-30T22:00:00'),
-    location: 'Club X, São Paulo',
-    payment: 150,
-    organizerId: '1',
-    totalSpots: 50,
-    availableSpots: 30,
-    status: 'available',
-    flyer: '/images/events/event1.jpg',
-    description: 'Uma noite incrível com os melhores DJs da cena eletrônica.',
-  },
-  {
-    id: '2',
-    name: 'Hip Hop Night',
-    date: new Date('2024-12-31T23:00:00'),
-    location: 'Club Y, São Paulo',
-    payment: 200,
-    organizerId: '2',
-    totalSpots: 100,
-    availableSpots: 45,
-    status: 'available',
-    flyer: '/images/events/event2.jpg',
-    description: 'O melhor do Hip Hop nacional e internacional.',
-  },
-  {
-    id: '3',
-    name: 'Reveillon 2024',
-    date: new Date('2024-01-01T22:00:00'),
-    location: 'Club Z, São Paulo',
-    payment: 300,
-    organizerId: 'ultimate',
-    totalSpots: 200,
-    availableSpots: 80,
-    status: 'available',
-    flyer: '/images/events/event3.jpg',
-    description: 'Celebre a virada do ano no lugar mais exclusivo da cidade.',
-  },
-];
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  flyerUrl: string;
+  totalSpots: number;
+  availableSpots: number;
+  payment: number;
+  status: string;
+  organizerId: string;
+  organizer: {
+    name: string;
+    establishmentName: string;
+  };
+}
 
-// Simulação de aplicações
-const mockApplications: { [eventId: string]: any[] } = {};
+interface Application {
+  id: string;
+  status: string;
+  createdAt: string;
+}
 
 export default function EventDetails() {
   const router = useRouter();
   const { id } = router.query;
-  const { user } = useAuth();
-  const [event, setEvent] = useState<IEvent | null>(null);
-  const [hasApplied, setHasApplied] = useState(false);
-  const [applicationStatus, setApplicationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const { data: session } = useSession();
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [application, setApplication] = useState<Application | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const foundEvent = mockEvents.find(e => e.id === id);
-      if (foundEvent) {
-        setEvent(foundEvent);
-        
-        // Verificar se o usuário já se candidatou
-        if (user?.type === 'presenca_vip') {
-          const eventApplications = mockApplications[foundEvent.id] || [];
-          const userApplication = eventApplications.find(app => app.presencaVipId === user.id);
-          
-          if (userApplication) {
-            setHasApplied(true);
-            setApplicationStatus(userApplication.status);
-          } else {
-            setHasApplied(false);
-            setApplicationStatus(null);
-          }
-        }
+      fetchEvent();
+      if (session?.user?.type === 'presence') {
+        fetchApplication();
       }
     }
-  }, [id, user]);
+  }, [id, session]);
 
-  const handleApply = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    if (user.type !== 'presenca_vip') {
-      alert('Apenas presenças VIP podem se candidatar aos eventos.');
-      return;
-    }
-
-    if (hasApplied) {
-      alert('Você já se candidatou para este evento.');
-      return;
-    }
-
+  const fetchEvent = async () => {
     try {
-      // Verificar se já tem outro evento no mesmo horário
-      const response = await fetch('/api/applications/check-conflicts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId: event!.id,
-          date: event!.date
-        })
-      });
-
+      const response = await fetch(`/api/events/${id}`);
+      if (!response.ok) throw new Error('Erro ao carregar evento');
       const data = await response.json();
-      
-      if (data.hasConflict) {
-        alert('Você já tem um evento aprovado neste horário.');
-        return;
-      }
-
-      // Enviar candidatura
-      const applyResponse = await fetch('/api/applications/apply', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventId: event!.id
-        })
-      });
-
-      if (!applyResponse.ok) {
-        throw new Error('Erro ao enviar candidatura');
-      }
-
-      setHasApplied(true);
-      setApplicationStatus('pending');
-      alert('Candidatura enviada com sucesso!');
-      
+      setEvent(data);
     } catch (error) {
-      console.error('Erro ao enviar candidatura:', error);
-      alert('Erro ao enviar candidatura. Tente novamente.');
+      console.error('Erro:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!event) {
+  const fetchApplication = async () => {
+    try {
+      const response = await fetch(`/api/applications/check/${id}`);
+      if (!response.ok) throw new Error('Erro ao verificar candidatura');
+      const data = await response.json();
+      setApplication(data);
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+
+    setIsApplying(true);
+    try {
+      const response = await fetch('/api/applications/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao se candidatar');
+      }
+
+      const data = await response.json();
+      setApplication(data);
+      alert('Candidatura enviada com sucesso!');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erro ao se candidatar');
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  if (isLoading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-dark-900 py-20">
-          <div className="max-w-4xl mx-auto px-4">
-            <p className="text-center text-gray-400">Carregando evento...</p>
-          </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-white">Carregando evento...</div>
         </div>
       </Layout>
     );
   }
 
+  if (!event) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-white">Evento não encontrado</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const isOrganizer = session?.user?.type === 'organizer';
+  const isEventOwner = session?.user?.id === event.organizerId;
+  const isPresence = session?.user?.type === 'presence';
+  const canApply = isPresence && !application;
+  const hasApplied = application !== null;
+
+  const getApplicationStatus = () => {
+    if (!application) return null;
+    switch (application.status) {
+      case 'pending':
+        return 'Candidatura em análise';
+      case 'approved':
+        return 'Candidatura aprovada';
+      case 'rejected':
+        return 'Candidatura recusada';
+      default:
+        return 'Status desconhecido';
+    }
+  };
+
   return (
     <Layout>
-      <div className="min-h-screen bg-dark-900 py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="glass-card overflow-hidden">
-            {/* Flyer do Evento */}
-            <div className="relative h-96">
-              <Image
-                src={event.flyer}
-                alt={event.name}
-                layout="fill"
-                objectFit="cover"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="glass-card overflow-hidden">
+          <div className="relative aspect-[21/9]">
+            <Image
+              src={event.flyerUrl || '/images/event-placeholder.jpg'}
+              alt={event.name}
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
+          </div>
+
+          <div className="p-8">
+            <div className="flex justify-between items-start mb-6">
+              <h1 className="text-4xl font-bold text-white">{event.name}</h1>
+              {isEventOwner && (
+                <Link
+                  href={`/events/${event.id}/edit`}
+                  className="btn-secondary"
+                >
+                  Editar Evento
+                </Link>
+              )}
             </div>
 
-            {/* Informações do Evento */}
-            <div className="p-8">
-              <h1 className="text-4xl font-bold mb-6">{event.name}</h1>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div className="space-y-4">
-                  <div className="flex items-center text-gray-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <div className="space-y-4 text-gray-300">
+                  <div className="flex items-center">
                     <CalendarIcon className="h-6 w-6 mr-3 text-accent-purple" />
-                    <div>
-                      <p className="font-medium">Data</p>
-                      <p>{event.date.toLocaleDateString('pt-BR')}</p>
-                    </div>
+                    {new Date(event.date).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
                   </div>
-
-                  <div className="flex items-center text-gray-300">
+                  <div className="flex items-center">
                     <ClockIcon className="h-6 w-6 mr-3 text-accent-pink" />
-                    <div>
-                      <p className="font-medium">Horário</p>
-                      <p>{event.date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
+                    {event.time}
                   </div>
-
-                  <div className="flex items-center text-gray-300">
+                  <div className="flex items-center">
                     <MapPinIcon className="h-6 w-6 mr-3 text-accent-blue" />
-                    <div>
-                      <p className="font-medium">Local</p>
-                      <p>{event.location}</p>
-                    </div>
+                    {event.location}
+                  </div>
+                  <div className="flex items-center">
+                    <CurrencyDollarIcon className="h-6 w-6 mr-3 text-accent-green" />
+                    R$ {event.payment.toFixed(2)}
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center text-gray-300">
-                    <CurrencyDollarIcon className="h-6 w-6 mr-3 text-green-400" />
-                    <div>
-                      <p className="font-medium">Valor</p>
-                      <p>{event.payment.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                    </div>
-                  </div>
+                <div className="mt-6">
+                  <h3 className="text-xl font-semibold text-white mb-2">Sobre o Evento</h3>
+                  <p className="text-gray-300 whitespace-pre-wrap">{event.description}</p>
+                </div>
 
-                  <div className="text-gray-300">
-                    <p className="font-medium mb-1">Vagas</p>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-accent-purple">{event.availableSpots} disponíveis</span>
-                      <span className="text-gray-400">de {event.totalSpots} totais</span>
-                    </div>
-                  </div>
-
-                  <div className="text-gray-300">
-                    <p className="font-medium mb-1">Status</p>
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      event.status === 'available' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
-                      {event.status === 'available' ? 'Disponível' : 'Lotado'}
-                    </span>
-                  </div>
+                <div className="mt-6">
+                  <h3 className="text-xl font-semibold text-white mb-2">Organizador</h3>
+                  <p className="text-gray-300">{event.organizer.establishmentName}</p>
                 </div>
               </div>
 
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Descrição</h2>
-                <p className="text-gray-300">{event.description}</p>
-              </div>
+              <div>
+                <div className="glass-card p-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">Vagas</h3>
+                  <div className="text-gray-300 mb-6">
+                    <p>Total: {event.totalSpots}</p>
+                    <p>Disponíveis: {event.availableSpots}</p>
+                  </div>
 
-              {/* Botões de Ação */}
-              <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                {user?.type === 'presenca_vip' && (
-                  <>
-                    {!hasApplied && (
-                      <button
-                        onClick={handleApply}
-                        className="bg-accent-purple hover:bg-accent-pink text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                      >
-                        Quero Participar
-                      </button>
-                    )}
+                  {canApply && (
+                    <button
+                      onClick={handleApply}
+                      disabled={isApplying}
+                      className="w-full btn-primary"
+                    >
+                      {isApplying ? 'Enviando...' : 'Candidatar-se'}
+                    </button>
+                  )}
 
-                    {hasApplied && (
-                      <div className="flex flex-col items-center space-y-2">
-                        <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                          applicationStatus === 'approved'
-                            ? 'bg-green-500/20 text-green-400'
-                            : applicationStatus === 'rejected'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-yellow-500/20 text-yellow-400'
-                        }`}>
-                          {applicationStatus === 'approved'
-                            ? 'Você foi aprovado!'
-                            : applicationStatus === 'rejected'
-                            ? 'Sua solicitação foi rejeitada'
-                            : 'Solicitação pendente'}
-                        </div>
+                  {hasApplied && (
+                    <div className="text-center p-4 rounded-lg bg-dark-800">
+                      <p className="text-gray-300">{getApplicationStatus()}</p>
+                    </div>
+                  )}
 
-                        {applicationStatus === 'approved' && (
-                          <button
-                            onClick={() => router.push(`/events/${id}/confirmed`)}
-                            className="bg-accent-purple hover:bg-accent-pink text-white px-4 py-2 rounded-lg text-sm"
-                          >
-                            Ver Lista de Presenças
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {user?.type === 'organizer' && user.id === event?.organizerId && (
-                  <button
-                    onClick={() => router.push(`/events/${id}/applications`)}
-                    className="bg-accent-purple hover:bg-accent-pink text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                  >
-                    Gerenciar Presenças
-                  </button>
-                )}
+                  {!isPresence && !isEventOwner && (
+                    <p className="text-center text-gray-400 mt-4">
+                      Apenas presenças VIP podem se candidatar a este evento
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

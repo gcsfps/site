@@ -1,50 +1,49 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
+import Image from 'next/image';
 import Link from 'next/link';
+import { CalendarIcon, MapPinIcon, ClockIcon } from '../../components/Icons';
+
+interface Event {
+  id: string;
+  name: string;
+  flyerUrl: string;
+  date: string;
+  time: string;
+  location: string;
+}
 
 interface Application {
   id: string;
-  eventId: string;
-  event: {
-    id: string;
-    name: string;
-    date: string;
-    location: string;
-    flyerUrl: string;
-  };
-  status: 'pending' | 'approved' | 'rejected';
-  applicationDate: string;
+  status: string;
+  createdAt: string;
+  event: Event;
 }
 
 export default function MyApplications() {
   const { data: session } = useSession();
-  const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!session || session.user.type !== 'presenca_vip') {
-      router.push('/login');
-      return;
+    if (session?.user?.type === 'presence') {
+      fetchApplications();
     }
+  }, [session]);
 
-    // Buscar candidaturas do usuário
-    const fetchApplications = async () => {
-      try {
-        const response = await fetch('/api/applications/my-applications');
-        const data = await response.json();
-        setApplications(data.applications);
-      } catch (error) {
-        console.error('Error fetching applications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchApplications();
-  }, [session, router]);
+  const fetchApplications = async () => {
+    try {
+      const response = await fetch('/api/applications/my-applications');
+      if (!response.ok) throw new Error('Erro ao buscar candidaturas');
+      const data = await response.json();
+      setApplications(data);
+    } catch (error) {
+      console.error('Erro:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -60,84 +59,89 @@ export default function MyApplications() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'Aprovado';
+        return 'Aprovada';
       case 'rejected':
-        return 'Rejeitado';
+        return 'Recusada';
       default:
         return 'Pendente';
     }
   };
 
+  if (!session || session.user.type !== 'presence') {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-white">
+            Acesso restrito a presenças VIP
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">Minhas Candidaturas</h1>
-          <Link
-            href="/events"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-purple hover:bg-accent-purple/90 transition-colors duration-200"
-          >
-            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Ver Eventos Disponíveis
-          </Link>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-white mb-8">Minhas Candidaturas</h1>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-pink mx-auto"></div>
-          </div>
+        {isLoading ? (
+          <div className="text-center text-gray-400">Carregando...</div>
         ) : applications.length === 0 ? (
-          <div className="text-center py-12 bg-dark-800/50 rounded-2xl border border-white/5">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-white">Nenhuma candidatura encontrada</h3>
-            <p className="mt-2 text-gray-400">
-              Explore os eventos disponíveis e candidate-se para trabalhar como presença VIP!
-            </p>
-            <Link
-              href="/events"
-              className="mt-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-purple hover:bg-accent-purple/90 transition-colors duration-200"
-            >
-              Ver Eventos
+          <div className="text-center text-gray-400">
+            <p>Você ainda não se candidatou a nenhum evento.</p>
+            <Link href="/" className="text-accent-purple hover:text-accent-pink mt-2 inline-block">
+              Ver eventos disponíveis
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {applications.map((application) => (
-              <div
-                key={application.id}
-                className="bg-dark-800/50 rounded-2xl border border-white/5 overflow-hidden hover:border-white/10 transition-all duration-200"
-              >
-                <div className="aspect-w-16 aspect-h-9">
-                  <img
-                    src={application.event.flyerUrl}
+              <div key={application.id} className="glass-card overflow-hidden">
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={application.event.flyerUrl || '/images/event-placeholder.jpg'}
                     alt={application.event.name}
+                    fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-white mb-2">{application.event.name}</h3>
-                  <p className="text-gray-400 mb-2">
-                    {new Date(application.event.date).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </p>
-                  <p className="text-gray-400 mb-4">{application.event.location}</p>
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute top-4 right-4">
+                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(application.status)}`}>
                       {getStatusText(application.status)}
                     </span>
-                    <Link
-                      href={`/events/${application.event.id}`}
-                      className="text-accent-pink hover:text-accent-purple transition-colors duration-200"
-                    >
-                      Ver Evento
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    <Link href={`/events/${application.event.id}`} className="hover:text-accent-purple">
+                      {application.event.name}
                     </Link>
+                  </h3>
+
+                  <div className="space-y-2 text-gray-300">
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-5 w-5 mr-2 text-accent-purple" />
+                      {new Date(application.event.date).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    <div className="flex items-center">
+                      <ClockIcon className="h-5 w-5 mr-2 text-accent-pink" />
+                      {application.event.time}
+                    </div>
+                    <div className="flex items-center">
+                      <MapPinIcon className="h-5 w-5 mr-2 text-accent-blue" />
+                      {application.event.location}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 text-sm text-gray-400">
+                    Candidatura enviada em:{' '}
+                    {new Date(application.createdAt).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
               </div>

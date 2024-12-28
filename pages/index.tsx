@@ -1,10 +1,76 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import EventCard from '../components/EventCard';
 import EventCarousel from '../components/EventCarousel';
 import Link from 'next/link';
+import Image from 'next/image';
+import { CalendarIcon, MapPinIcon } from '../components/Icons';
+
+interface Event {
+  id: string;
+  name: string;
+  flyerUrl: string;
+  date: string;
+  location: string;
+  featured?: boolean;
+}
+
+const EventCard = ({ event }: { event: Event }) => {
+  return (
+    <Link href={`/events/${event.id}`} className="block">
+      <div className="glass-card overflow-hidden group hover:scale-[1.02] transition-all duration-200">
+        <div className="relative aspect-[16/9]">
+          <Image
+            src={event.flyerUrl || '/images/event-placeholder.jpg'}
+            alt={event.name}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <h3 className="text-2xl font-bold text-white mb-2">{event.name}</h3>
+            <div className="flex items-center text-gray-200 mb-2">
+              <CalendarIcon className="h-5 w-5 mr-2" />
+              {new Date(event.date).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+              })}
+            </div>
+            <div className="flex items-center text-gray-200">
+              <MapPinIcon className="h-5 w-5 mr-2" />
+              {event.location}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
 
 export default function Home() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events');
+        if (!response.ok) {
+          throw new Error('Erro ao buscar eventos');
+        }
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error('Erro ao buscar eventos:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   return (
     <Layout>
       {/* Próximos Eventos Section */}
@@ -34,7 +100,18 @@ export default function Home() {
             
             {/* Events Grid */}
             <div className="content-wrapper p-8">
-              <EventCarousel />
+              {!isLoading && (
+                <>
+                  {events.some(event => event.featured) && (
+                    <EventCarousel events={events.filter(event => event.featured)} />
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+                    {events.map((event) => (
+                      <EventCard key={event.id} event={event} />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

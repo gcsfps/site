@@ -2,10 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/profile/my-events": "pages/profile/my-events.js",
-  "/profile/subscription": "pages/profile/subscription.js",
-  "/profile/account": "pages/profile/account.js",
+  "/": "pages/index.js",
+  "/events/[id]": "pages/events/[id].js",
   "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
-  "/api/profile/[id]": "pages/api/profile/[id].js",
-  "/api/subscription": "pages/api/subscription.js"
+  "/api/events/[id]": "pages/api/events/[id].js",
+  "/api/profile/[id]": "pages/api/profile/[id].js"
 }

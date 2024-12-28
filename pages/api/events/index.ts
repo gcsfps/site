@@ -1,54 +1,132 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
-import { prisma } from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../lib/prisma';
+import formidable from 'formidable';
+import fs from 'fs';
+import path from 'path';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req });
-  if (!session?.user?.email) {
+  const session = await getServerSession(req, res, authOptions);
+  
+  if (!session) {
     return res.status(401).json({ message: 'Não autorizado' });
   }
 
   if (req.method === 'POST') {
     try {
-      const { name, date, time, location, totalSpots, payment, description } = req.body;
-      const flyerUrl = req.body.flyerUrl || '';
+      // Verificar se é um promoter
+      if (session.user.type !== 'organizer') {
+        return res.status(403).json({ message: 'Apenas promoters podem criar eventos' });
+      }
 
+      // Configurar o formidable para processar o upload
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const form = formidable({
+        uploadDir,
+        keepExtensions: true,
+        maxFileSize: 5 * 1024 * 1024, // 5MB
+      });
+
+      // Processar o formulário
+      const [fields, files] = await new Promise((resolve, reject) => {
+        form.parse(req, (err, fields, files) => {
+          if (err) reject(err);
+          resolve([fields, files]);
+        });
+      });
+
+      // Validar campos obrigatórios
+      const requiredFields = ['name', 'date', 'time', 'location', 'totalSpots', 'payment', 'description'];
+      const missingFields = requiredFields.filter(field => !fields[field]);
+
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          message: `Campos obrigatórios faltando: ${missingFields.join(', ')}`,
+          missingFields
+        });
+      }
+
+      // Processar o flyer
+      const flyer = files.flyer?.[0];
+      if (!flyer) {
+        return res.status(400).json({ message: 'Por favor, selecione um flyer para o evento' });
+      }
+
+      // Validar tipo do arquivo
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(flyer.mimetype || '')) {
+        fs.unlinkSync(flyer.filepath);
+        return res.status(400).json({ message: 'Tipo de arquivo não permitido' });
+      }
+
+      // Gerar nome único para o arquivo
+      const fileName = `${Date.now()}-${flyer.originalFilename}`;
+      const newPath = path.join(uploadDir, fileName);
+
+      // Mover arquivo para localização final
+      fs.renameSync(flyer.filepath, newPath);
+      const flyerUrl = `/uploads/${fileName}`;
+
+      // Criar o evento
       const event = await prisma.event.create({
         data: {
-          name,
-          date: new Date(`${date}T${time}`),
-          location,
-          totalSpots: parseInt(totalSpots),
-          payment,
-          description,
+          name: fields.name.toString(),
+          date: new Date(`${fields.date}T${fields.time}`),
+          location: fields.location.toString(),
+          totalSpots: parseInt(fields.totalSpots.toString()),
+          payment: parseFloat(fields.payment.toString()),
+          description: fields.description.toString(),
           flyerUrl,
           organizerId: session.user.id,
-          status: 'active'
+          status: 'active',
+          availableSpots: parseInt(fields.totalSpots.toString())
         }
       });
 
       return res.status(201).json(event);
     } catch (error) {
       console.error('Erro ao criar evento:', error);
-      return res.status(500).json({ message: 'Erro ao criar evento' });
+      return res.status(500).json({ message: 'Erro ao criar evento', error: error.message });
     }
   }
 
   if (req.method === 'GET') {
     try {
       const events = await prisma.event.findMany({
-        where: {
-          OR: [
-            { status: 'active' },
-            { organizerId: session.user.id }
-          ]
-        },
+        where: session?.user?.type === 'organizer' 
+          ? { organizerId: session.user.id }
+          : { status: 'active' },
         orderBy: {
           date: 'asc'
+        },
+        include: {
+          organizer: {
+            select: {
+              name: true,
+              establishmentName: true
+            }
+          }
         }
       });
 
-      return res.status(200).json(events);
+      // Converter as datas para string ISO
+      const formattedEvents = events.map(event => ({
+        ...event,
+        date: event.date.toISOString()
+      }));
+
+      return res.status(200).json(formattedEvents);
     } catch (error) {
       console.error('Erro ao buscar eventos:', error);
       return res.status(500).json({ message: 'Erro ao buscar eventos' });
