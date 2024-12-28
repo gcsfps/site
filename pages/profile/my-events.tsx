@@ -19,7 +19,7 @@ export default function MyEvents() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.type === 'organizer') {
+    if (session?.user?.type === 'promoter') {
       fetchEvents();
     }
   }, [session, router]);
@@ -39,13 +39,13 @@ export default function MyEvents() {
     }
   };
 
-  if (!session || session.user.type !== 'organizer') {
+  if (!session || session.user.type !== 'promoter') {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12 bg-dark-800/50 rounded-2xl border border-white/5">
             <p className="text-gray-400">
-              Apenas organizadores podem acessar esta página
+              Apenas promoters podem acessar esta página
             </p>
           </div>
         </div>
