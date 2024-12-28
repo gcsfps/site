@@ -40,6 +40,20 @@ export default function MyEvents() {
     fetchEvents();
   }, [session, router]);
 
+  if (!session || session.user.type !== 'organizer') {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12 bg-dark-800/50 rounded-2xl border border-white/5">
+            <p className="text-gray-400">
+              Apenas organizadores podem acessar esta página
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,7 +74,7 @@ export default function MyEvents() {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-pink mx-auto"></div>
           </div>
-        ) : events.length === 0 ? (
+        ) : events && events.length === 0 ? (
           <div className="text-center py-12 bg-dark-800/50 rounded-2xl border border-white/5">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
