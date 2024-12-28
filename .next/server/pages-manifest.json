@@ -6,5 +6,6 @@
   "/events/[id]": "pages/events/[id].js",
   "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
   "/api/events/[id]": "pages/api/events/[id].js",
-  "/api/profile/[id]": "pages/api/profile/[id].js"
+  "/api/profile/[id]": "pages/api/profile/[id].js",
+  "/api/events": "pages/api/events.js"
 }
