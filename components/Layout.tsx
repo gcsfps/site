@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { UserIcon, CalendarIcon, ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ContactSidebar from './ContactSidebar';
+import SubscriptionBadge from './SubscriptionBadge';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -78,13 +79,15 @@ export default function Layout({ children }: LayoutProps) {
               )}
               {/* Login/Logout Button */}
               {user ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-800 hover:text-white"
-                >
-                  <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
-                  Sair
-                </button>
+                <div className="flex items-center space-x-4">
+                  <SubscriptionBadge />
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    Sair
+                  </button>
+                </div>
               ) : (
                 <Link
                   href="/login"

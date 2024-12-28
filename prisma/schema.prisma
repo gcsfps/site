@@ -14,13 +14,13 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  email         String    @unique
-  password      String
-  name          String
-  type          String    // "organizer" ou "user"
-  whatsapp      String?
-  subscription  Json?     // Dados da assinatura
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  email            String    @unique
+  password         String
+  name             String
+  type             String    @default("presenca_vip")
+  whatsapp         String?
+  subscription     Json?     // Dados da assinatura
   
   // Campos específicos para promoter/balada
   establishmentName String?  // Nome da balada/estabelecimento
@@ -32,10 +32,13 @@ model User {
   openingHours     Json?     // Horário de funcionamento
   socialMedia      Json?     // Links de redes sociais
   
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  events        Event[]   @relation("EventOrganizer")
-  applications  Application[] @relation("UserApplications")
+  resetToken       String?   // Campo para token de reset de senha
+  resetTokenExpiry DateTime? // Campo para expiração do token
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  events           Event[]   @relation("EventOrganizer")
+  applications     Application[] @relation("UserApplications")
 }
 
 model Event {

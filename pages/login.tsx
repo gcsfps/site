@@ -2,43 +2,39 @@ import Layout from '../components/Layout';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useAuth } from '../contexts/AuthContext';
+import { signIn } from 'next-auth/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Usar o contexto de autenticação para fazer login
-        authLogin(data.token, data.user);
-        
-        // Redirecionar baseado no tipo de usuário
-        if (data.user.type === 'organizer') {
-          router.push('/events/manage'); // Página de gerenciamento para promoters
-        } else if (data.user.type === 'presenca_vip') {
-          router.push('/events'); // Página de eventos para VIPs
-        }
-      } else {
-        alert(data.message || 'Erro ao fazer login');
+      if (result?.error) {
+        setError('Email ou senha incorretos');
+        return;
       }
+
+      // Redirecionar para a página de perfil
+      router.push('/profile');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
-      alert('Erro ao fazer login. Tente novamente.');
+      setError('Erro ao fazer login. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +46,12 @@ export default function Login() {
             <h1 className="text-3xl font-bold mb-8 text-center">
               <span className="gradient-text">Login</span>
             </h1>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-500">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -83,17 +85,17 @@ export default function Login() {
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center text-gray-300">
-                  <input type="checkbox" className="mr-2" />
-                  Lembrar-me
-                </label>
                 <Link href="/forgot-password" className="text-accent-purple hover:text-accent-pink">
                   Esqueceu a senha?
                 </Link>
               </div>
 
-              <button type="submit" className="btn-primary w-full">
-                Entrar
+              <button 
+                type="submit" 
+                className="btn-primary w-full"
+                disabled={loading}
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
               </button>
 
               <div className="text-center text-gray-400">

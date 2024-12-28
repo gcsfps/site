@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { FiLoader } from 'react-icons/fi';
 
 interface AddressFormProps {
-  onAddressChange: (address: AddressData) => void;
+  onAddressChange?: (address: AddressData) => void;
   initialData?: AddressData;
 }
 
@@ -26,66 +25,31 @@ export default function AddressForm({ onAddressChange, initialData }: AddressFor
     city: '',
     state: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleCepChange = async (cep: string) => {
-    setAddress(prev => ({ ...prev, cep }));
-    
-    if (cep.length === 8) {
-      setLoading(true);
-      setError('');
-      
-      try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const data = await response.json();
-        
-        if (data.erro) {
-          setError('CEP não encontrado');
-          return;
-        }
-
-        setAddress(prev => ({
-          ...prev,
-          street: data.logradouro,
-          neighborhood: data.bairro,
-          city: data.localidade,
-          state: data.uf
-        }));
-
-        onAddressChange({
-          ...address,
-          street: data.logradouro,
-          neighborhood: data.bairro,
-          city: data.localidade,
-          state: data.uf
-        });
-      } catch (err) {
-        setError('Erro ao buscar CEP');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
+    // Para CEP, remove caracteres não numéricos
     if (name === 'cep') {
-      const numbers = value.replace(/\D/g, '');
-      handleCepChange(numbers);
-    } else {
-      setAddress(prev => ({ ...prev, [name]: value }));
-      onAddressChange({ ...address, [name]: value });
+      const cleanValue = value.replace(/\D/g, '').slice(0, 8);
+      const newAddress = { ...address, [name]: cleanValue };
+      setAddress(newAddress);
+      if (onAddressChange) onAddressChange(newAddress);
+      return;
     }
+
+    // Para outros campos, atualiza normalmente
+    const newAddress = { ...address, [name]: value };
+    setAddress(newAddress);
+    if (onAddressChange) onAddressChange(newAddress);
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <div className="relative">
+        <div>
           <label htmlFor="cep" className="block text-gray-300 mb-2">
-            CEP
+            CEP *
           </label>
           <input
             type="text"
@@ -94,23 +58,17 @@ export default function AddressForm({ onAddressChange, initialData }: AddressFor
             value={address.cep}
             onChange={handleChange}
             className="input-field"
-            placeholder="00000-000"
+            placeholder="00000000"
             maxLength={8}
+            required
           />
-          {loading && (
-            <FiLoader className="absolute right-3 top-10 animate-spin text-accent-purple" />
-          )}
         </div>
       </div>
-
-      {error && (
-        <div className="text-red-500 text-sm">{error}</div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="street" className="block text-gray-300 mb-2">
-            Rua
+            Rua *
           </label>
           <input
             type="text"
@@ -120,12 +78,13 @@ export default function AddressForm({ onAddressChange, initialData }: AddressFor
             onChange={handleChange}
             className="input-field"
             placeholder="Nome da rua"
+            required
           />
         </div>
 
         <div>
           <label htmlFor="number" className="block text-gray-300 mb-2">
-            Número
+            Número *
           </label>
           <input
             type="text"
@@ -135,6 +94,7 @@ export default function AddressForm({ onAddressChange, initialData }: AddressFor
             onChange={handleChange}
             className="input-field"
             placeholder="123"
+            required
           />
         </div>
       </div>
@@ -201,6 +161,8 @@ export default function AddressForm({ onAddressChange, initialData }: AddressFor
           />
         </div>
       </div>
+      
+      <p className="text-sm text-gray-400">* Campos obrigatórios</p>
     </div>
   );
 }

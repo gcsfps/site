@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { PhoneIcon, EnvelopeIcon, Bars3Icon, XMarkIcon, CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, EnvelopeIcon, Bars3Icon, XMarkIcon, CalendarIcon, UserGroupIcon, UserIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { WhatsappIcon } from './icons/WhatsappIcon';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -36,12 +36,25 @@ export default function ContactSidebar({ isOpen, onClose }: ContactSidebarProps)
 
           <div className="space-y-4 mb-8">
             {user && (
-              <div className="flex items-center space-x-2 p-4 rounded-lg bg-dark-900">
-                <span className="text-sm font-medium text-gray-300">{user.email}</span>
-                <span className="text-xs px-2 py-1 rounded-full bg-dark-700 text-gray-300 capitalize">
-                  {user.type === 'organizer' ? 'Promoter' : 'Presença'}
-                </span>
-              </div>
+              <>
+                <Link
+                  href="/profile/account"
+                  className="flex items-center space-x-4 p-4 rounded-lg transition-colors duration-200 bg-dark-900 hover:bg-dark-700"
+                >
+                  <UserIcon className="h-6 w-6" />
+                  <span className="font-medium">Minha Conta</span>
+                </Link>
+
+                {user.type === 'organizer' && (
+                  <Link
+                    href="/subscription/plans"
+                    className="flex items-center space-x-4 p-4 rounded-lg transition-colors duration-200 bg-dark-900 hover:bg-dark-700"
+                  >
+                    <CreditCardIcon className="h-6 w-6" />
+                    <span>Assinatura</span>
+                  </Link>
+                )}
+              </>
             )}
 
             <Link

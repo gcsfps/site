@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 
@@ -32,6 +32,7 @@ interface User {
     facebook?: string;
     whatsapp?: string;
   };
+  subscription?: any;
 }
 
 interface AuthContextType {
@@ -49,26 +50,29 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch(`/api/profile/${session.user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setUser({
+            ...data,
+            id: session.user.id,
+            email: session.user.email,
+          });
+        })
+        .catch(console.error);
+    } else {
+      setUser(null);
+    }
+  }, [session]);
 
   const logout = async () => {
     await signOut({ redirect: false });
     router.push('/login');
   };
-
-  const user = session?.user ? {
-    id: session.user.id as string,
-    email: session.user.email as string,
-    name: session.user.name as string,
-    type: session.user.type as string,
-    establishmentName: session.user.establishmentName,
-    phone: session.user.phone,
-    description: session.user.description,
-    profileImage: session.user.profileImage,
-    coverImage: session.user.coverImage,
-    address: session.user.address,
-    openingHours: session.user.openingHours,
-    socialMedia: session.user.socialMedia,
-  } : null;
 
   return (
     <AuthContext.Provider

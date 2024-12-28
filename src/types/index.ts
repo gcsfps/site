@@ -91,19 +91,21 @@ export interface IProfile {
 export interface ISubscription {
   id?: string;
   userId: string;
-  plan: 'basic' | 'premium' | 'ultimate';
-  status: 'active' | 'inactive' | 'cancelled';
+  plan: 'Basic' | 'Premium' | 'Ultimate';
+  status: 'active' | 'inactive';
+  isAdmin?: boolean;
+  isPermanent?: boolean;
   features: {
     maxEvents: number;
     maxPresencasPerEvent: number;
+    maxFlyersPerMonth: number;
     analytics: boolean;
     prioritySupport: boolean;
     customBranding: boolean;
     profileAccess: boolean;
   };
-  startDate: Date;
-  endDate: Date;
-  price: number;
+  startDate: string;
+  endDate?: string;
 }
 
 // Tipos para Eventos
