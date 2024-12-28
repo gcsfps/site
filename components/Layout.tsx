@@ -27,9 +27,9 @@ export default function Layout({ children }: LayoutProps) {
     ] : [
       { href: '/events', label: 'Eventos', icon: CalendarIcon },
     ]),
-    { href: '/profile/edit', label: 'Meu Perfil', icon: UserIcon },
+    { href: '/profile', label: 'Meu Perfil', icon: UserIcon },
   ] : [];
-  
+
   return (
     <div className="min-h-screen bg-dark-900">
       <nav className="bg-black border-b border-zinc-900 fixed w-full z-40">
@@ -67,6 +67,15 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* User Info */}
+              {user && (
+                <div className="hidden md:flex items-center space-x-2 text-gray-300">
+                  <span className="text-sm font-medium">{user.email}</span>
+                  <span className="text-xs px-2 py-1 rounded-full bg-dark-800 capitalize">
+                    {user.type === 'organizer' ? 'Promoter' : 'Presença'}
+                  </span>
+                </div>
+              )}
               {/* Login/Logout Button */}
               {user ? (
                 <button
