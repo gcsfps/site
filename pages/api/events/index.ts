@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     try {
       // Verificar se é um promoter
-      if (session.user.type !== 'organizer') {
+      if (session.user.type !== 'promoter') {
         return res.status(403).json({ message: 'Apenas promoters podem criar eventos' });
       }
 
@@ -83,6 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           name: fields.name.toString(),
           date: new Date(`${fields.date}T${fields.time}`),
+          time: fields.time.toString(),
           location: fields.location.toString(),
           totalSpots: parseInt(fields.totalSpots.toString()),
           payment: parseFloat(fields.payment.toString()),
@@ -99,39 +100,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Erro ao criar evento:', error);
       return res.status(500).json({ message: 'Erro ao criar evento', error: error.message });
     }
-  }
-
-  if (req.method === 'GET') {
+  } else if (req.method === 'GET') {
     try {
       const events = await prisma.event.findMany({
-        where: session?.user?.type === 'organizer' 
-          ? { organizerId: session.user.id }
-          : { status: 'active' },
         orderBy: {
           date: 'asc'
-        },
-        include: {
-          organizer: {
-            select: {
-              name: true,
-              establishmentName: true
-            }
-          }
         }
       });
-
-      // Converter as datas para string ISO
-      const formattedEvents = events.map(event => ({
-        ...event,
-        date: event.date.toISOString()
-      }));
-
-      return res.status(200).json(formattedEvents);
+      return res.status(200).json(events);
     } catch (error) {
       console.error('Erro ao buscar eventos:', error);
       return res.status(500).json({ message: 'Erro ao buscar eventos' });
     }
   }
 
-  return res.status(405).json({ message: 'Método não permitido' });
+  return res.status(405).json({ message: 'Method not allowed' });
 }
