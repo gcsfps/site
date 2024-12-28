@@ -76,7 +76,11 @@ export const authOptions = {
         };
       }
       return session;
-    }
+    },
+    async redirect({ url, baseUrl }) {
+      // Sempre redireciona para a página principal após o login
+      return baseUrl;
+    },
   },
   pages: {
     signIn: '/login',

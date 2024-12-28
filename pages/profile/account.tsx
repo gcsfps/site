@@ -7,12 +7,20 @@ import { IUser } from '../../src/types';
 import Link from 'next/link';
 import PlanIcon from '../../components/PlanIcon'; // Import the PlanIcon component
 
+interface Subscription {
+  plan: 'Ultimate' | 'Premium' | 'Basic';
+  status: 'active' | 'inactive';
+  endDate?: string;
+  isPermanent?: boolean;
+}
+
 export default function Account() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [userData, setUserData] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -39,6 +47,17 @@ export default function Account() {
 
     fetchUserData();
   }, [session]);
+
+  useEffect(() => {
+    if (session?.user?.email === 'gabrielcordeiromail@gmail.com') {
+      setSubscription({
+        plan: 'Ultimate',
+        status: 'active'
+      });
+    } else if (userData?.subscription) {
+      setSubscription(userData.subscription);
+    }
+  }, [session, userData]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,48 +205,33 @@ export default function Account() {
                   <h2 className="text-xl font-semibold mb-4">Assinatura</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-gray-400 mb-1">Plano</label>
-                      <div className="flex items-center space-x-3">
-                        <PlanIcon 
-                          plan={
-                            userData.subscription?.status === 'active' 
-                              ? (userData.subscription.plan as 'Ultimate' | 'Premium' | 'Basic') 
-                              : 'Basic'
-                          } 
-                          size="lg" 
-                        />
-                        <div>
-                          <div className="text-lg font-medium">
-                            {userData.subscription?.status === 'active' 
-                              ? userData.subscription.plan 
-                              : 'Sem plano'}
-                          </div>
-                          {userData.subscription?.isPermanent && (
-                            <span className="text-sm text-green-400">
-                              Acesso permanente
-                            </span>
-                          )}
-                        </div>
+                      <p className="text-sm text-gray-400 mb-1">Plano</p>
+                      <div className="flex items-center space-x-2">
+                        {subscription ? (
+                          <>
+                            <PlanIcon plan={subscription.plan} size="md" />
+                            <span className="text-white font-medium">{subscription.plan}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-300">Sem plano</span>
+                        )}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-gray-400 mb-1">Status</label>
-                      <div className={`flex items-center space-x-2 ${
-                        userData.subscription?.status === 'active' ? 'text-green-400' : 'text-red-400'
+                      <p className="text-sm text-gray-400 mb-1">Status</p>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        subscription?.status === 'active'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-gray-500/20 text-gray-400'
                       }`}>
-                        <div className={`w-2 h-2 rounded-full ${
-                          userData.subscription?.status === 'active' ? 'bg-green-400' : 'bg-red-400'
-                        }`} />
-                        <span className="capitalize">
-                          {userData.subscription?.status === 'active' ? 'Ativa' : 'Inativa'}
-                        </span>
-                      </div>
+                        {subscription?.status === 'active' ? 'Ativa' : 'Inativa'}
+                      </span>
                     </div>
-                    {!userData.subscription?.isPermanent && userData.subscription?.endDate && (
+                    {!subscription?.isPermanent && subscription?.endDate && (
                       <div>
-                        <label className="block text-gray-400 mb-1">Validade</label>
+                        <p className="text-sm text-gray-400 mb-1">Validade</p>
                         <div className="text-gray-200">
-                          {new Date(userData.subscription.endDate).toLocaleDateString('pt-BR')}
+                          {new Date(subscription.endDate).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
                     )}
