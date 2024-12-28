@@ -3,9 +3,7 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/events/[id]": "pages/events/[id].js",
-  "/events/[id]/edit": "pages/events/[id]/edit.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/": "pages/index.js",
   "/api/events/[id]": "pages/api/events/[id].js",
-  "/api/applications/event/[id]": "pages/api/applications/event/[id].js",
-  "/api/profile/[id]": "pages/api/profile/[id].js"
+  "/api/applications/event/[id]": "pages/api/applications/event/[id].js"
 }
