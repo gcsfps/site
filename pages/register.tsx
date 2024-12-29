@@ -1,3 +1,5 @@
+"use client";
+
 import Layout from '../components/Layout';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -11,13 +13,17 @@ export default function Register() {
     whatsapp: '',
     password: '',
     confirmPassword: '',
-    type: 'presenca_vip'
+    type: 'vip',
+    establishmentName: '',
+    address: '',
+    phone: '',
+    description: ''
   });
 
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -44,18 +50,29 @@ export default function Register() {
           email: formData.email,
           password: formData.password,
           type: formData.type,
-          ...(formData.type === 'presenca_vip' ? { whatsapp: formData.whatsapp } : {})
+          whatsapp: formData.whatsapp,
+          ...(formData.type === 'promoter' ? {
+            establishmentName: formData.establishmentName,
+            address: formData.address,
+            phone: formData.phone,
+            description: formData.description
+          } : {})
         }),
       });
 
       if (response.ok) {
-        router.push('/login?registered=true');
+        // Redireciona com base no tipo de usuário
+        if (formData.type === 'promoter') {
+          router.push('/subscription'); // Promoters precisam escolher um plano
+        } else {
+          router.push('/events'); // VIPs vão direto para eventos
+        }
       } else {
         const data = await response.json();
-        setError(data.message || 'Erro ao registrar');
+        setError(data.message || 'Erro ao criar conta');
       }
-    } catch (err) {
-      setError('Erro ao conectar com o servidor');
+    } catch (error) {
+      setError('Erro ao criar conta. Tente novamente.');
     }
   };
 
@@ -68,47 +85,31 @@ export default function Register() {
               <span className="gradient-text">Criar Conta</span>
             </h1>
 
-            <div className="mb-6">
-              <div className="flex justify-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, type: 'presenca_vip' }))}
-                  className={`px-4 py-2 rounded-lg ${
-                    formData.type === 'presenca_vip'
-                      ? 'bg-accent-purple text-white'
-                      : 'bg-dark-800 text-gray-400'
-                  }`}
-                >
-                  Presença VIP
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, type: 'organizer' }))}
-                  className={`px-4 py-2 rounded-lg ${
-                    formData.type === 'organizer'
-                      ? 'bg-accent-purple text-white'
-                      : 'bg-dark-800 text-gray-400'
-                  }`}
-                >
-                  Promoter
-                </button>
-              </div>
-            </div>
-
             {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-500 text-sm">
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-500">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-gray-300 mb-2">
-                  Nome Completo
-                </label>
+                <label className="block text-gray-300 mb-2">Tipo de Conta</label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="input-field"
+                  required
+                >
+                  <option value="vip">Presença VIP</option>
+                  <option value="promoter">Promoter/Estabelecimento</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Nome</label>
                 <input
                   type="text"
-                  id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -118,12 +119,9 @@ export default function Register() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-gray-300 mb-2">
-                  Email
-                </label>
+                <label className="block text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
-                  id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
@@ -132,52 +130,91 @@ export default function Register() {
                 />
               </div>
 
-              {formData.type === 'presenca_vip' && (
+              {formData.type === 'vip' && (
                 <div>
-                  <label htmlFor="whatsapp" className="block text-gray-300 mb-2">
-                    WhatsApp
-                  </label>
+                  <label className="block text-gray-300 mb-2">WhatsApp</label>
                   <input
                     type="tel"
-                    id="whatsapp"
                     name="whatsapp"
                     value={formData.whatsapp}
                     onChange={handleChange}
-                    placeholder="(11) 99999-9999"
                     className="input-field"
                     required
                   />
                 </div>
               )}
 
+              {formData.type === 'promoter' && (
+                <>
+                  <div>
+                    <label className="block text-gray-300 mb-2">Nome do Estabelecimento</label>
+                    <input
+                      type="text"
+                      name="establishmentName"
+                      value={formData.establishmentName}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 mb-2">Endereço</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 mb-2">Telefone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 mb-2">Descrição do Estabelecimento</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      className="input-field h-24"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
               <div>
-                <label htmlFor="password" className="block text-gray-300 mb-2">
-                  Senha
-                </label>
+                <label className="block text-gray-300 mb-2">Senha</label>
                 <input
                   type="password"
-                  id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="••••••••"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-gray-300 mb-2">
-                  Confirmar Senha
-                </label>
+                <label className="block text-gray-300 mb-2">Confirmar Senha</label>
                 <input
                   type="password"
-                  id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="••••••••"
                   required
                 />
               </div>
@@ -189,7 +226,7 @@ export default function Register() {
               <div className="text-center text-gray-400">
                 Já tem uma conta?{' '}
                 <Link href="/login" className="text-accent-purple hover:text-accent-pink">
-                  Faça login
+                  Fazer Login
                 </Link>
               </div>
             </form>

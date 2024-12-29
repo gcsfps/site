@@ -64,41 +64,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-        callbackUrl: '/profile',
-      });
-
-      if (result?.error) {
-        setError('Email ou senha incorretos');
-      } else {
-        if (rememberMe) {
-          // Salva as credenciais no localStorage
-          localStorage.setItem('rememberedEmail', email);
-        } else {
-          // Remove as credenciais do localStorage
-          localStorage.removeItem('rememberedEmail');
-        }
-        router.push('/profile');
-      }
-    } catch (error) {
-      setError('Ocorreu um erro ao fazer login');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Carrega o email salvo quando o componente é montado
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -107,95 +73,123 @@ export default function Login() {
     }
   }, []);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.error) {
+        setError('Email ou senha incorretos');
+        setLoading(false);
+        return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+
+      // Espera um pouco antes de redirecionar
+      setTimeout(() => {
+        window.location.replace('/profile');
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      setError('Erro ao fazer login. Tente novamente.');
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Login
-            </h2>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="rounded-md shadow-sm -space-y-px">
+      <div className="min-h-screen bg-dark-900 py-20">
+        <div className="max-w-md mx-auto px-4">
+          <div className="glass-card p-8">
+            <h1 className="text-3xl font-bold mb-8 text-center">
+              <span className="gradient-text">Login</span>
+            </h1>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-500">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="sr-only">
+                <label htmlFor="email" className="block text-gray-300 mb-2">
                   Email
                 </label>
                 <input
-                  id="email"
-                  name="email"
                   type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email"
+                  id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="input-field"
+                  placeholder="seu@email.com"
+                  required
                 />
               </div>
+
               <div>
-                <label htmlFor="password" className="sr-only">
+                <label htmlFor="password" className="block text-gray-300 mb-2">
                   Senha
                 </label>
                 <input
-                  id="password"
-                  name="password"
                   type="password"
-                  autoComplete="current-password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Senha"
+                  id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="input-field"
+                  placeholder="••••••••"
+                  required
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Lembrar-me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                  Esqueceu sua senha?
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-accent-purple focus:ring-accent-pink border-gray-300 rounded"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-gray-300">
+                    Lembrar-me
+                  </label>
+                </div>
+                <Link href="/forgot-password" className="text-accent-purple hover:text-accent-pink">
+                  Esqueceu a senha?
                 </Link>
               </div>
-            </div>
 
-            {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
-            )}
-
-            <div>
-              <button
-                type="submit"
+              <button 
+                type="submit" 
+                className="btn-primary w-full"
                 disabled={loading}
-                className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                  loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
-                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
               >
                 {loading ? 'Entrando...' : 'Entrar'}
               </button>
-            </div>
 
-            <div className="text-center">
-              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                Não tem uma conta? Registre-se
-              </Link>
-            </div>
-          </form>
+              <div className="text-center text-gray-400">
+                Não tem uma conta?{' '}
+                <Link href="/register" className="text-accent-purple hover:text-accent-pink">
+                  Registre-se
+                </Link>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </Layout>

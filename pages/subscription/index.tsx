@@ -1,71 +1,224 @@
+"use client";
+
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { useEffect, useState } from 'react';
+import Layout from '../../components/Layout';
+import PlanIcon from '../../components/PlanIcon';
+
+const plans = [
+  {
+    name: 'Basic',
+    price: 99.90,
+    features: [
+      '3 eventos simultâneos',
+      '10 presenças por evento',
+      '4 flyers por mês',
+      'Suporte por email',
+      'Acesso aos perfis'
+    ]
+  },
+  {
+    name: 'Premium',
+    price: 199.90,
+    features: [
+      '5 eventos simultâneos',
+      '20 presenças por evento',
+      'Flyers ilimitados',
+      'Analytics e relatórios',
+      'Suporte prioritário',
+      'Acesso aos perfis'
+    ]
+  },
+  {
+    name: 'Ultimate',
+    price: 399.90,
+    features: [
+      'Eventos ilimitados',
+      'Presenças ilimitadas',
+      'Todos os recursos premium',
+      'Personalização de marca',
+      'Recursos exclusivos',
+      'Suporte VIP 24/7'
+    ]
+  }
+];
 
 export default function Subscription() {
   const { data: session } = useSession();
   const router = useRouter();
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [user, setUser] = useState<any>(null);
 
-  if (!session) {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    // Buscar informações do usuário
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+
+          // Se não for promoter, redireciona
+          if (userData.type !== 'promoter') {
+            router.push('/events');
+            return;
+          }
+
+          // Se já tiver assinatura ativa, redireciona para o perfil
+          if (userData.subscription?.status === 'active') {
+            router.push('/profile');
+            return;
+          }
+        }
+      } catch (error) {
+        setError('Erro ao carregar informações do usuário');
+      }
+    };
+
+    fetchUserInfo();
+  }, [session, router]);
+
+  const handleSelectPlan = async (planName: string) => {
+    setSelectedPlan(planName);
+  };
+
+  const handleSubscribe = async () => {
+    if (!selectedPlan) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/subscription/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: selectedPlan,
+        }),
+      });
+
+      if (response.ok) {
+        router.push('/subscription/success');
+      } else {
+        const data = await response.json();
+        setError(data.message || 'Erro ao criar assinatura');
+      }
+    } catch (error) {
+      setError('Erro ao processar assinatura');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!session) return null;
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Assinatura</h1>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-4">Planos disponíveis</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Plano Básico */}
-            <div className="border rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2">Plano Básico</h3>
-              <p className="text-gray-600 mb-4">Perfeito para começar</p>
-              <ul className="space-y-2 mb-6">
-                <li>✓ Acesso a eventos básicos</li>
-                <li>✓ Perfil personalizado</li>
-                <li>✓ Suporte por email</li>
-              </ul>
-              <p className="text-2xl font-bold mb-4">R$ 29,90/mês</p>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-                Assinar
-              </button>
-            </div>
-
-            {/* Plano Premium */}
-            <div className="border rounded-lg p-6 bg-blue-50">
-              <h3 className="text-xl font-bold mb-2">Plano Premium</h3>
-              <p className="text-gray-600 mb-4">Para usuários avançados</p>
-              <ul className="space-y-2 mb-6">
-                <li>✓ Tudo do Plano Básico</li>
-                <li>✓ Acesso prioritário a eventos</li>
-                <li>✓ Descontos exclusivos</li>
-                <li>✓ Suporte prioritário</li>
-              </ul>
-              <p className="text-2xl font-bold mb-4">R$ 59,90/mês</p>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-                Assinar
-              </button>
-            </div>
-
-            {/* Plano Ultimate */}
-            <div className="border rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2">Plano Ultimate</h3>
-              <p className="text-gray-600 mb-4">Experiência VIP completa</p>
-              <ul className="space-y-2 mb-6">
-                <li>✓ Tudo do Plano Premium</li>
-                <li>✓ Eventos exclusivos</li>
-                <li>✓ Benefícios VIP</li>
-                <li>✓ Suporte 24/7</li>
-              </ul>
-              <p className="text-2xl font-bold mb-4">R$ 99,90/mês</p>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-                Assinar
-              </button>
-            </div>
+      <div className="min-h-screen bg-dark-900 py-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">
+              <span className="gradient-text">Escolha seu Plano</span>
+            </h1>
+            <p className="text-xl text-gray-400">
+              Selecione o plano ideal para o seu negócio
+            </p>
           </div>
+
+          {error && (
+            <div className="mb-8 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-500 text-center">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {plans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`glass-card p-8 relative overflow-hidden transition-all duration-300 ${
+                  selectedPlan === plan.name
+                    ? 'border-2 border-accent-purple'
+                    : 'border border-white/5 hover:border-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <PlanIcon plan={plan.name as 'Ultimate' | 'Premium' | 'Basic'} size="lg" />
+                    <h2 className="text-2xl font-bold">{plan.name}</h2>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <p className="text-4xl font-bold mb-2">
+                    R$ {plan.price.toFixed(2)}
+                    <span className="text-sm font-normal text-gray-400">/mês</span>
+                  </p>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center text-gray-300">
+                      <svg
+                        className="w-5 h-5 text-accent-purple mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleSelectPlan(plan.name)}
+                  className={`w-full py-3 px-4 rounded-lg transition-all duration-300 ${
+                    selectedPlan === plan.name
+                      ? 'bg-accent-purple text-white'
+                      : 'bg-dark-800 text-gray-300 hover:bg-dark-700'
+                  }`}
+                  disabled={loading}
+                >
+                  {selectedPlan === plan.name ? 'Plano Selecionado' : 'Selecionar Plano'}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {selectedPlan && (
+            <div className="text-center">
+              <button
+                onClick={handleSubscribe}
+                className="btn-primary px-8 py-3"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                    Processando...
+                  </div>
+                ) : (
+                  'Confirmar Assinatura'
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

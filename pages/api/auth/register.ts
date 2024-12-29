@@ -8,7 +8,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { name, email, password, type } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      type,
+      whatsapp,
+      establishmentName,
+      address,
+      phone,
+      description
+    } = req.body;
 
     // Validar o tipo de usuário
     if (!['promoter', 'vip'].includes(type)) {
@@ -34,7 +44,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email,
         password: hashedPassword,
         type,
+        whatsapp: type === 'vip' ? whatsapp : null,
+        establishmentName: type === 'promoter' ? establishmentName : null,
+        address: type === 'promoter' ? address : null,
+        phone: type === 'promoter' ? phone : null,
+        description: type === 'promoter' ? description : null,
+        // Promoters começam sem assinatura
+        subscription: type === 'promoter' ? {
+          create: {
+            status: 'inactive',
+            type: 'none'
+          }
+        } : undefined
       },
+      include: {
+        subscription: true
+      }
     });
 
     // Remove a senha do objeto retornado

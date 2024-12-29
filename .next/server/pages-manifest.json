@@ -2,7 +2,11 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/register": "pages/register.js",
   "/events/my-applications": "pages/events/my-applications.js",
-  "/profile": "pages/profile.js"
+  "/profile": "pages/profile.js",
+  "/api/profile/[id]": "pages/api/profile/[id].js",
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/promoters": "pages/promoters.js",
+  "/login": "pages/login.js",
+  "/profile/account": "pages/profile/account.js"
 }
