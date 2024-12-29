@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
-import { IEvent, IApplication } from '../../src/types';
+import { IEvent } from '../../src/types';
 import Image from 'next/image';
-import { CalendarIcon, MapPinIcon, UserGroupIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 
-export default function ManageEvents() {
-  const [events, setEvents] = useState<IEvent[]>([]);
-  const [applications, setApplications] = useState<{ [key: string]: IApplication[] }>({});
+export default function MyApplications() {
+  const [applications, setApplications] = useState<IEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -20,45 +19,36 @@ export default function ManageEvents() {
     }
 
     // Redirecionar para a página apropriada com base no tipo de usuário
-    if (user?.type === 'vip') {
-      router.push('/events/my-applications');
+    if (user?.type === 'promoter') {
+      router.push('/events/manage');
       return;
     }
 
-    if (user?.type !== 'promoter') {
+    if (user?.type !== 'vip') {
       router.push('/');
       return;
     }
 
-    // Carregar eventos do promoter
-    const fetchEvents = async () => {
+    // Carregar candidaturas do usuário VIP
+    const fetchApplications = async () => {
       try {
-        const response = await fetch('/api/events/my');
+        const response = await fetch('/api/applications/my');
         if (!response.ok) {
-          throw new Error('Erro ao buscar eventos');
+          throw new Error('Erro ao buscar candidaturas');
         }
         const data = await response.json();
-        // Converter as datas para objetos Date
-        const eventsWithDates = data.map(event => ({
-          ...event,
-          date: new Date(event.date)
-        }));
-        setEvents(eventsWithDates);
+        setApplications(data);
       } catch (error) {
-        console.error('Erro ao buscar eventos:', error);
+        console.error('Erro ao buscar candidaturas:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchEvents();
+    fetchApplications();
   }, [isAuthenticated, user, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (user?.type !== 'promoter') {
+  if (!isAuthenticated || user?.type !== 'vip') {
     return null;
   }
 
@@ -66,7 +56,7 @@ export default function ManageEvents() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-4">Carregando eventos...</h1>
+          <h1 className="text-2xl font-bold mb-4">Carregando candidaturas...</h1>
         </div>
       </Layout>
     );
@@ -75,29 +65,27 @@ export default function ManageEvents() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Meus Eventos</h1>
-          <button
-            onClick={() => router.push('/events/create')}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg"
-          >
-            Criar Novo Evento
-          </button>
-        </div>
+        <h1 className="text-3xl font-bold mb-6">Minhas Candidaturas</h1>
 
-        {events.length === 0 ? (
+        {applications.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold text-gray-600 mb-4">
-              Você ainda não tem eventos cadastrados
+              Você ainda não se candidatou a nenhum evento
             </h2>
             <p className="text-gray-500 mb-6">
-              Comece criando seu primeiro evento!
+              Explore os eventos disponíveis e candidate-se!
             </p>
+            <button
+              onClick={() => router.push('/events')}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg"
+            >
+              Ver Eventos Disponíveis
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <div key={event.id} className="glass-card overflow-hidden group hover:scale-[1.02] transition-all duration-200">
+            {applications.map((event) => (
+              <div key={event.id} className="glass-card overflow-hidden">
                 <div className="relative aspect-[16/9]">
                   <Image
                     src={event.flyerUrl || '/images/event-placeholder.jpg'}
@@ -129,30 +117,26 @@ export default function ManageEvents() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-gray-600">
-                      <UserGroupIcon className="h-5 w-5 mr-2" />
-                      <span>{event.availableSpots} vagas disponíveis</span>
-                    </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      event.status === 'approved' 
+                        ? 'bg-green-100 text-green-800'
+                        : event.status === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {event.status === 'active' ? 'Ativo' : 'Encerrado'}
+                      {event.status === 'approved' 
+                        ? 'Aprovada'
+                        : event.status === 'rejected'
+                        ? 'Rejeitada'
+                        : 'Pendente'}
                     </span>
                   </div>
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => router.push(`/events/${event.id}`)}
-                      className="flex-1 bg-white text-gray-800 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      Ver Detalhes
-                    </button>
-                    <button
-                      onClick={() => router.push(`/events/edit/${event.id}`)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
-                    >
-                      Editar
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => router.push(`/events/${event.id}`)}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
+                  >
+                    Ver Detalhes
+                  </button>
                 </div>
               </div>
             ))}

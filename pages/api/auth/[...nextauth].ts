@@ -19,7 +19,12 @@ export const authOptions = {
           where: { email: credentials.email }
         });
 
-        if (!user || user.password !== credentials.password) {
+        if (!user) {
+          throw new Error('Email ou senha incorretos');
+        }
+
+        // Comparação direta da senha
+        if (credentials.password !== user.password) {
           throw new Error('Email ou senha incorretos');
         }
 
@@ -40,8 +45,10 @@ export const authOptions = {
       }
     })
   ],
-  session: {
-    strategy: 'jwt',
+  pages: {
+    signIn: '/login',
+    signOut: '/login',
+    error: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -60,32 +67,38 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user = {
-          ...session.user,
-          id: token.id,
-          type: token.type,
-          establishmentName: token.establishmentName,
-          phone: token.phone,
-          description: token.description,
-          profileImage: token.profileImage,
-          coverImage: token.coverImage,
-          address: token.address,
-          openingHours: token.openingHours,
-          socialMedia: token.socialMedia,
-        };
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.type = token.type;
+        session.user.establishmentName = token.establishmentName;
+        session.user.phone = token.phone;
+        session.user.description = token.description;
+        session.user.profileImage = token.profileImage;
+        session.user.coverImage = token.coverImage;
+        session.user.address = token.address;
+        session.user.openingHours = token.openingHours;
+        session.user.socialMedia = token.socialMedia;
       }
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Sempre redireciona para a página principal após o login
+      if (url.includes('signOut') || url.includes('logout')) {
+        return `${baseUrl}/login`;
+      }
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
       return baseUrl;
-    },
+    }
   },
-  pages: {
-    signIn: '/login',
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 horas
   },
-  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
-}
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24 horas
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
+};
 
 export default NextAuth(authOptions);

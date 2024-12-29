@@ -5,20 +5,23 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const isAuthPage = request.nextUrl.pathname.startsWith('/login');
+  const isLogoutPage = request.nextUrl.pathname.startsWith('/api/auth/signout');
 
+  // Se estiver fazendo logout, deixa prosseguir
+  if (isLogoutPage) {
+    return NextResponse.next();
+  }
+
+  // Se não estiver autenticado e tentar acessar uma página protegida
   if (!token && !isAuthPage) {
-    // Se não estiver autenticado e não estiver em uma página de auth, redireciona para o login
-    return NextResponse.redirect(new URL('/login', request.url));
+    const url = new URL('/login', request.url);
+    url.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.redirect(url);
   }
 
+  // Se estiver autenticado e tentar acessar página de login
   if (token && isAuthPage) {
-    // Se estiver autenticado e tentar acessar página de auth, redireciona para home
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
-  // Em caso de logout, redireciona para a página principal
-  if (request.nextUrl.pathname === '/api/auth/signout') {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/profile', request.url));
   }
 
   return NextResponse.next();
@@ -27,7 +30,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/profile/:path*',
+    '/events/:path*',
     '/login',
-    '/api/auth/signout'
+    '/api/auth/signout',
+    '/api/profile/:path*'
   ]
 };

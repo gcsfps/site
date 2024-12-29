@@ -165,16 +165,9 @@ export default function Home() {
               <div className="mt-12 flex justify-center gap-6">
                 <Link
                   href="/register"
-                  className="relative group px-8 py-3 bg-gradient-to-r from-accent-purple to-accent-pink rounded-xl text-white font-medium transition-all duration-300"
+                  className="px-8 py-3 bg-accent-purple hover:bg-accent-pink rounded-xl text-white font-medium backdrop-blur-sm transition-all duration-300"
                 >
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple to-accent-pink rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
                   <span className="relative">Começar Agora</span>
-                </Link>
-                <Link
-                  href="/about"
-                  className="px-8 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white font-medium backdrop-blur-sm transition-all duration-300"
-                >
-                  Saiba Mais
                 </Link>
               </div>
             </div>

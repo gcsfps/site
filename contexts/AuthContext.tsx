@@ -1,92 +1,110 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { signOut, useSession } from 'next-auth/react';
 
 interface User {
   id: string;
+  name: string;
   email: string;
   type: string;
-  name: string;
   establishmentName?: string;
   phone?: string;
   description?: string;
   profileImage?: string;
   coverImage?: string;
-  address?: {
-    cep: string;
-    street: string;
-    number: string;
-    complement?: string;
-    neighborhood?: string;
-    city?: string;
-    state?: string;
-  };
-  openingHours?: {
-    [key: string]: {
-      open: string;
-      close: string;
-    };
-  };
+  address?: string;
+  openingHours?: string;
   socialMedia?: {
     instagram?: string;
     facebook?: string;
-    whatsapp?: string;
+    twitter?: string;
   };
-  subscription?: any;
 }
 
-interface AuthContextType {
+interface AuthContextData {
   user: User | null;
-  isAuthenticated: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isAuthenticated: false,
-  logout: () => {},
-});
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (session?.user?.email) {
-      fetch(`/api/profile/${session.user.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setUser({
-            ...data,
-            id: session.user.id,
-            email: session.user.email,
-          });
-        })
-        .catch(console.error);
+    if (session?.user) {
+      setUser(session.user as User);
     } else {
       setUser(null);
     }
   }, [session]);
 
+  const clearAllCookies = () => {
+    const cookies = document.cookie.split(';');
+    const domain = window.location.hostname;
+    
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      
+      // Remove o cookie com diferentes combinações de atributos
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain}`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain}; secure`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${domain}; secure; samesite=strict`;
+      
+      // Tenta limpar também com prefixos de segurança
+      document.cookie = `__Secure-${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure`;
+      document.cookie = `__Host-${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure`;
+    }
+
+    // Limpa storages
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.error('Erro ao limpar storage:', e);
+    }
+  };
+
   const logout = async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
+    try {
+      // Limpa o estado do usuário
+      setUser(null);
+      
+      // Limpa todos os cookies e storage
+      clearAllCookies();
+      
+      // Faz o signOut do NextAuth
+      await signOut({
+        redirect: false,
+        callbackUrl: '/login'
+      });
+
+      // Espera um pouco mais antes de redirecionar
+      setTimeout(() => {
+        window.location.replace('/login');
+      }, 500);
+
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Em caso de erro, força um reload
+      window.location.replace('/login');
+    }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: status === 'authenticated',
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ user, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
