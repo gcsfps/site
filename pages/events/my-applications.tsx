@@ -62,6 +62,28 @@ export default function MyApplications() {
     );
   }
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'Aprovada';
+      case 'rejected':
+        return 'Rejeitada';
+      default:
+        return 'Pendente';
+    }
+  };
+
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -117,19 +139,14 @@ export default function MyApplications() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      event.status === 'approved' 
-                        ? 'bg-green-100 text-green-800'
-                        : event.status === 'rejected'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {event.status === 'approved' 
-                        ? 'Aprovada'
-                        : event.status === 'rejected'
-                        ? 'Rejeitada'
-                        : 'Pendente'}
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(event.status)}`}>
+                      {getStatusText(event.status)}
                     </span>
+                    {event.organizer && (
+                      <span className="text-sm text-gray-500">
+                        {event.organizer.establishmentName || event.organizer.name}
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={() => router.push(`/events/${event.id}`)}

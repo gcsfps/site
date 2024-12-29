@@ -65,7 +65,7 @@ export default function ConfirmedPresences() {
         setConfirmedPresences(confirmed);
 
         // Se for presença VIP, verificar se está aprovado
-        if (user?.type === 'presenca_vip') {
+        if (user?.type === 'vip') {
           const userApp = eventApplications.find(app => app.presencaVipId === user.id);
           setUserApplication(userApp || null);
 

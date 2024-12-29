@@ -33,7 +33,7 @@ export default function ManageEvents() {
     // Carregar eventos do promoter
     const fetchEvents = async () => {
       try {
-        const response = await fetch('/api/events/my');
+        const response = await fetch('/api/events/my-events');
         if (!response.ok) {
           throw new Error('Erro ao buscar eventos');
         }
@@ -129,28 +129,36 @@ export default function ManageEvents() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-gray-600">
-                      <UserGroupIcon className="h-5 w-5 mr-2" />
-                      <span>{event.availableSpots} vagas disponíveis</span>
-                    </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      event.status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : event.status === 'canceled'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {event.status === 'active' ? 'Ativo' : 'Encerrado'}
+                      {event.status === 'active'
+                        ? 'Ativo'
+                        : event.status === 'canceled'
+                        ? 'Cancelado'
+                        : 'Finalizado'}
                     </span>
+                    <div className="flex items-center text-gray-500">
+                      <UserGroupIcon className="h-5 w-5 mr-1" />
+                      <span>{event.availableSpots} vagas</span>
+                    </div>
                   </div>
-                  <div className="flex space-x-4">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => router.push(`/events/${event.id}`)}
-                      className="flex-1 bg-white text-gray-800 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
                     >
                       Ver Detalhes
                     </button>
                     <button
-                      onClick={() => router.push(`/events/edit/${event.id}`)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200"
+                      onClick={() => router.push(`/events/${event.id}/applications`)}
+                      className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200"
                     >
-                      Editar
+                      Candidaturas
                     </button>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const session = await getSession({ req });
-    if (!session || session.user.type !== 'presenca_vip') {
+    if (!session || session.user.type !== 'vip') {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 

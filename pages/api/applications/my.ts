@@ -15,13 +15,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: 'Não autorizado' });
     }
 
-    if (session.user.type !== 'vip') {
+    // Buscar o usuário atual
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    if (user.type !== 'vip') {
       return res.status(403).json({ message: 'Apenas usuários VIP podem ver suas candidaturas' });
     }
 
     const applications = await prisma.application.findMany({
       where: {
-        userId: session.user.id,
+        presencaVipId: user.id,
       },
       include: {
         event: {

@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from '../../../src/lib/prisma';
+import { compare } from 'bcryptjs';
 
 export const authOptions = {
   providers: [
@@ -23,8 +24,9 @@ export const authOptions = {
           throw new Error('Email ou senha incorretos');
         }
 
-        // Comparação direta da senha
-        if (credentials.password !== user.password) {
+        // Comparação com bcryptjs
+        const isValidPassword = await compare(credentials.password, user.password);
+        if (!isValidPassword) {
           throw new Error('Email ou senha incorretos');
         }
 

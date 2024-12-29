@@ -3,7 +3,7 @@ export interface IUser {
   id?: string;
   name: string;
   email: string;
-  type: 'organizer' | 'presenca_vip';
+  type: 'organizer' | 'vip';
   password?: string;
   establishmentName?: string;
   phone?: string;
@@ -39,7 +39,7 @@ declare module "next-auth" {
       id: string;
       name: string;
       email: string;
-      type: 'organizer' | 'presenca_vip';
+      type: 'organizer' | 'vip';
       establishmentName?: string;
       phone?: string;
       description?: string;
