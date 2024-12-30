@@ -113,6 +113,21 @@ export default function Layout({ children }: LayoutProps) {
                             </Link>
                           )}
                         </Menu.Item>
+                        <Menu.Item>
+                          {({ active }) => (
+                            <Link
+                              href="/account"
+                              className={`flex items-center px-4 py-2.5 text-sm ${
+                                active ? 'bg-white/5 text-white' : 'text-gray-300'
+                              }`}
+                            >
+                              <svg className="w-5 h-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              Minha Conta
+                            </Link>
+                          )}
+                        </Menu.Item>
                       </div>
 
                       {/* Menu Específico por Tipo de Usuário */}
@@ -121,15 +136,15 @@ export default function Layout({ children }: LayoutProps) {
                           <Menu.Item>
                             {({ active }) => (
                               <Link
-                                href="/events/my-events"
+                                href="/subscription"
                                 className={`flex items-center px-4 py-2.5 text-sm ${
                                   active ? 'bg-white/5 text-white' : 'text-gray-300'
                                 }`}
                               >
                                 <svg className="w-5 h-5 mr-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                 </svg>
-                                Meus Eventos
+                                Minha Assinatura
                               </Link>
                             )}
                           </Menu.Item>

@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: 'Não autorizado' });
     }
 
-    const { plan } = req.body;
+    const { plan, isTestPromoter } = req.body;
 
     // Validar o plano
     if (!['Basic', 'Premium', 'Ultimate'].includes(plan)) {
@@ -64,26 +64,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Apenas promoters podem assinar planos' });
     }
 
-    // Configurar a data de término (30 dias a partir de agora)
+    // Calcular data de término
+    const startDate = new Date();
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
+    
+    // Se for o promoter de teste, dá 1 ano de Ultimate
+    // Se for promoter normal, dá 1 mês de Basic
+    if (isTestPromoter) {
+      endDate.setFullYear(endDate.getFullYear() + 1); // 1 ano
+      plan = 'Ultimate';
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1); // 1 mês
+      plan = 'Basic';
+    }
 
-    // Criar ou atualizar a assinatura
+    // Criar ou atualizar assinatura
     const subscription = await prisma.subscription.upsert({
       where: {
         userId: user.id
       },
-      create: {
-        userId: user.id,
-        plan,
+      update: {
+        plan: plan,
         status: 'active',
-        endDate,
+        startDate: startDate,
+        endDate: endDate,
         ...plans[plan as keyof typeof plans]
       },
-      update: {
-        plan,
+      create: {
+        userId: user.id,
+        plan: plan,
         status: 'active',
-        endDate,
+        startDate: startDate,
+        endDate: endDate,
         ...plans[plan as keyof typeof plans]
       }
     });

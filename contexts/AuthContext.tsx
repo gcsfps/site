@@ -93,25 +93,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setInitialSubscription = async (userId: string, isTestPromoter = false) => {
+  const setInitialSubscription = async (userId: string, email: string) => {
     try {
-      const subscriptionData = {
-        userId,
-        plan: isTestPromoter ? 'ultimate' : 'basic',
-        status: 'active',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + (isTestPromoter ? 365 : 30) * 24 * 60 * 60 * 1000), // 1 ano ou 1 mês
-      };
-
-      await fetch('/api/subscriptions/create', {
+      const isTestPromoter = email === 'promoter@teste.com';
+      
+      await fetch('/api/subscription/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(subscriptionData),
+        body: JSON.stringify({
+          userId,
+          plan: isTestPromoter ? 'Ultimate' : 'Basic',
+          isTestPromoter
+        }),
       });
     } catch (error) {
       console.error('Erro ao configurar assinatura:', error);
+    }
+  };
+
+  const createTestEvents = async (userId: string) => {
+    try {
+      await fetch('/api/events/create-test-events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+    } catch (error) {
+      console.error('Erro ao criar eventos de teste:', error);
     }
   };
 
@@ -130,7 +142,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         // Se for promoter, configura assinatura inicial
         if (type === 'promoter') {
-          await setInitialSubscription(data.user.id, email === 'promoter@teste.com');
+          await setInitialSubscription(data.user.id, email);
+          
+          // Se for o promoter de teste, cria eventos de exemplo
+          if (email === 'promoter@teste.com') {
+            await createTestEvents(data.user.id);
+          }
         }
         
         await signIn('credentials', {
