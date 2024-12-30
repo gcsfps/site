@@ -1,106 +1,120 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  email            String    @unique
-  password         String
-  name             String
-  type             String    @default("presenca_vip")
-  whatsapp         String?
-  subscription     Json?     // Dados da assinatura
-  
-  // Campos específicos para promoter/balada
-  establishmentName String?  // Nome da balada/estabelecimento
-  address          Json?     // Endereço completo (CEP, rua, número, etc.)
-  phone            String?   // Telefone de contato
-  description      String?   // Descrição do estabelecimento
-  profileImage     String?   // URL da foto de perfil
-  coverImage       String?   // URL da foto de capa
-  openingHours     Json?     // Horário de funcionamento
-  socialMedia      Json?     // Links de redes sociais
-  
-  resetToken       String?   // Campo para token de reset de senha
-  resetTokenExpiry DateTime? // Campo para expiração do token
-  
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  events           Event[]   @relation("EventOrganizer")
-  applications     Application[] @relation("UserApplications")
-  subscriptionInfo Subscription? @relation("UserSubscription")
-  reviews          Review[]  @relation("UserReviews")
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  events        Event[]   @relation("UserEvents")
+  whatsapp      String?
+  phone         String?
+  establishment String?
+  address       String?
+  instagram     String?
+  facebook      String?
+  openingHours  String?
+  subscription  Subscription?
+  applications  Application[] @relation("UserApplications")
+  reviews       Review[]      @relation("UserReviews")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Event {
-  id              String    @id @default(cuid()) @map("_id") @db.ObjectId
-  name            String
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
   description     String
   date            DateTime
-  time            String
   location        String
-  flyerUrl        String?    // URL do flyer
-  totalSpots      Int
-  availableSpots  Int
-  payment         Float
-  status          String    @default("active") // active, canceled, finished
-  featured        Boolean   @default(false)  // Para destacar eventos na página inicial
-  organizerId     String    @db.ObjectId
-  organizer       User      @relation("EventOrganizer", fields: [organizerId], references: [id])
-  applications    Application[] @relation("EventApplications")
-  reviews         Review[]  @relation("EventReviews")
+  maxParticipants Int
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  organizerId     String    @db.ObjectId
+  organizer       User      @relation("UserEvents", fields: [organizerId], references: [id])
+  applications    Application[] @relation("EventApplications")
+  reviews         Review[]      @relation("EventReviews")
 }
 
 model Application {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  presencaVipId  String    @db.ObjectId
-  eventId        String    @db.ObjectId
-  status         String    @default("pending") // pending, approved, rejected
-  presencaVip    User      @relation("UserApplications", fields: [presencaVipId], references: [id])
-  event          Event     @relation("EventApplications", fields: [eventId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  presencaVipId String    @db.ObjectId
+  eventId       String    @db.ObjectId
+  status        String    @default("pending") // pending, approved, rejected
+  presencaVip   User      @relation("UserApplications", fields: [presencaVipId], references: [id])
+  event         Event     @relation("EventApplications", fields: [eventId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  @@index([presencaVipId])
-  @@index([eventId])
   @@unique([presencaVipId, eventId])
 }
 
 model Subscription {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @unique @db.ObjectId
-  user        User     @relation("UserSubscription", fields: [userId], references: [id])
-  plan        String   // "Ultimate", "Premium", "Basic"
-  status      String   // "active", "inactive"
-  startDate   DateTime @default(now())
-  endDate     DateTime?
-  isPermanent Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String   @unique @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id])
+  plan                String
+  status              String
+  startDate           DateTime
+  endDate             DateTime
+  maxEvents           Int
+  maxPresencasPerEvent Int
+  maxFlyersPerMonth   Int
+  analytics           Boolean
+  prioritySupport     Boolean
+  customBranding      Boolean
+  profileAccess       Boolean
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Review {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  eventId     String    @db.ObjectId
-  userId      String    @db.ObjectId
-  rating      Int       @default(0)
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId     String   @db.ObjectId
+  userId      String   @db.ObjectId
+  rating      Int
   comment     String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  event       Event     @relation("EventReviews", fields: [eventId], references: [id])
-  user        User      @relation("UserReviews", fields: [userId], references: [id])
-
-  @@index([eventId])
-  @@index([userId])
-  @@unique([userId, eventId])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  event       Event    @relation("EventReviews", fields: [eventId], references: [id])
+  user        User     @relation("UserReviews", fields: [userId], references: [id])
 }
