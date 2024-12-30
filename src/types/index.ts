@@ -1,24 +1,25 @@
 // Tipos para Usuários
 export interface IUser {
-  id?: string;
-  name: string;
+  id: string;
   email: string;
-  type: 'organizer' | 'vip';
-  password?: string;
+  name: string;
+  type: 'promoter' | 'vip';
+  whatsapp?: string;
+  subscription?: any;
   establishmentName?: string;
-  phone?: string;
-  description?: string;
-  profileImage?: string;
-  coverImage?: string;
   address?: {
     cep: string;
     street: string;
     number: string;
     complement?: string;
-    neighborhood?: string;
-    city?: string;
-    state?: string;
+    neighborhood: string;
+    city: string;
+    state: string;
   };
+  phone?: string;
+  description?: string;
+  profileImage?: string;
+  coverImage?: string;
   openingHours?: {
     [key: string]: {
       open: string;
@@ -28,7 +29,7 @@ export interface IUser {
   socialMedia?: {
     instagram?: string;
     facebook?: string;
-    whatsapp?: string;
+    twitter?: string;
   };
 }
 
@@ -39,7 +40,7 @@ declare module "next-auth" {
       id: string;
       name: string;
       email: string;
-      type: 'organizer' | 'vip';
+      type: 'promoter' | 'vip';
       establishmentName?: string;
       phone?: string;
       description?: string;
@@ -50,9 +51,9 @@ declare module "next-auth" {
         street: string;
         number: string;
         complement?: string;
-        neighborhood?: string;
-        city?: string;
-        state?: string;
+        neighborhood: string;
+        city: string;
+        state: string;
       };
       openingHours?: {
         [key: string]: {
@@ -63,9 +64,9 @@ declare module "next-auth" {
       socialMedia?: {
         instagram?: string;
         facebook?: string;
-        whatsapp?: string;
+        twitter?: string;
       };
-    }
+    };
   }
 }
 

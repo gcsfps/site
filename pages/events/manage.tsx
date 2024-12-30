@@ -30,7 +30,7 @@ export default function ManageEvents() {
       return;
     }
 
-    // Carregar eventos do promoter
+    // Carregar eventos do organizer
     const fetchEvents = async () => {
       try {
         const response = await fetch('/api/events/my-events');

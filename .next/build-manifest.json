@@ -36,11 +36,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/profile.js"
-    ],
-    "/subscription": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/subscription.js"
     ]
   },
   "ampFirstPages": []
