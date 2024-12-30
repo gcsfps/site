@@ -5,11 +5,14 @@ import Image from 'next/image';
 import Layout from '../../../components/Layout';
 import { CalendarIcon, MapPinIcon, ClockIcon, UsersIcon, CurrencyDollarIcon, PencilIcon } from '../../../components/Icons';
 import { formatDate, formatTime } from '../../../utils/format';
+import { useToast } from '../../../contexts/ToastContext';
+import { logger } from '../../../src/lib/logger';
 
 export default function EventDetails() {
   const router = useRouter();
   const { id } = router.query;
   const { data: session } = useSession();
+  const { addToast } = useToast();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [hasApplied, setHasApplied] = useState(false);
@@ -17,6 +20,9 @@ export default function EventDetails() {
   const [activeTab, setActiveTab] = useState('details');
   const [applications, setApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
+  const [userReview, setUserReview] = useState<any>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -36,9 +42,11 @@ export default function EventDetails() {
       if (response.ok) {
         const data = await response.json();
         setEvent(data);
+        logger.info('Event details fetched', { eventId: id });
       }
     } catch (error) {
-      console.error('Erro ao buscar detalhes do evento:', error);
+      logger.error('Error fetching event details', { eventId: id, error });
+      addToast({ type: 'error', message: 'Erro ao carregar detalhes do evento' });
     } finally {
       setLoading(false);
     }
@@ -114,6 +122,33 @@ export default function EventDetails() {
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       alert('Erro ao atualizar status da candidatura');
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: id,
+          rating,
+          comment,
+        }),
+      });
+
+      if (response.ok) {
+        addToast({ type: 'success', message: 'Avaliação enviada com sucesso!' });
+        fetchEventDetails();
+        setRating(0);
+        setComment('');
+      } else {
+        throw new Error('Erro ao enviar avaliação');
+      }
+    } catch (error) {
+      logger.error('Error submitting review', { eventId: id, error });
+      addToast({ type: 'error', message: 'Erro ao enviar avaliação' });
     }
   };
 
@@ -268,6 +303,72 @@ export default function EventDetails() {
                       <div className="text-gray-300">
                         <h3 className="text-xl font-semibold text-white mb-4">Organizador</h3>
                         <p>{event.organizer?.establishmentName}</p>
+                      </div>
+
+                      {/* Seção de Avaliações */}
+                      <div className="mt-8">
+                        <h2 className="text-2xl font-bold mb-4">Avaliações</h2>
+                        
+                        {/* Formulário de Avaliação */}
+                        <form onSubmit={handleSubmitReview} className="mb-6">
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">Sua Avaliação</label>
+                            <div className="flex gap-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  onClick={() => setRating(star)}
+                                  className={`text-2xl ${
+                                    rating >= star ? 'text-yellow-400' : 'text-gray-300'
+                                  }`}
+                                >
+                                  ★
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">Comentário</label>
+                            <textarea
+                              value={comment}
+                              onChange={(e) => setComment(e.target.value)}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              rows={3}
+                            />
+                          </div>
+                          
+                          <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                          >
+                            Enviar Avaliação
+                          </button>
+                        </form>
+
+                        {/* Lista de Avaliações */}
+                        <div className="space-y-4">
+                          {event?.reviews?.map((review) => (
+                            <div key={review.id} className="border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <span className="text-yellow-400 mr-2">
+                                    {'★'.repeat(review.rating)}
+                                    {'☆'.repeat(5 - review.rating)}
+                                  </span>
+                                  <span className="font-medium">{review.user?.name}</span>
+                                </div>
+                                <span className="text-sm text-gray-500">
+                                  {new Date(review.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {review.comment && (
+                                <p className="text-gray-700">{review.comment}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

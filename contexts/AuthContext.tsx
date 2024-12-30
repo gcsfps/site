@@ -23,6 +23,7 @@ interface User {
 interface AuthContextData {
   user: User | null;
   logout: () => Promise<void>;
+  register: (email: string, password: string, type: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -76,26 +77,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Limpa todos os cookies e storage
       clearAllCookies();
       
-      // Faz o signOut do NextAuth
-      await signOut({
-        redirect: false,
-        callbackUrl: '/login'
+      // Chama a API de force-logout
+      await fetch('/api/auth/force-logout', {
+        method: 'POST',
+        credentials: 'include'
       });
-
-      // Espera um pouco mais antes de redirecionar
-      setTimeout(() => {
-        window.location.replace('/login');
-      }, 500);
-
+      
+      // Força redirecionamento
+      window.location.href = '/login';
+      
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Em caso de erro, força um reload
-      window.location.replace('/login');
+      window.location.href = '/login';
+    }
+  };
+
+  const setInitialSubscription = async (userId: string, isTestPromoter = false) => {
+    try {
+      const subscriptionData = {
+        userId,
+        plan: isTestPromoter ? 'ultimate' : 'basic',
+        status: 'active',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + (isTestPromoter ? 365 : 30) * 24 * 60 * 60 * 1000), // 1 ano ou 1 mês
+      };
+
+      await fetch('/api/subscriptions/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(subscriptionData),
+      });
+    } catch (error) {
+      console.error('Erro ao configurar assinatura:', error);
+    }
+  };
+
+  const register = async (email: string, password: string, type: string = 'vip') => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, type }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Se for promoter, configura assinatura inicial
+        if (type === 'promoter') {
+          await setInitialSubscription(data.user.id, email === 'promoter@teste.com');
+        }
+        
+        await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        router.push('/dashboard');
+      } else {
+        throw new Error(data.message || 'Erro ao registrar');
+      }
+    } catch (error) {
+      console.error('Erro no registro:', error);
+      throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout }}>
+    <AuthContext.Provider value={{ user, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

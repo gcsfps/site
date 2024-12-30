@@ -151,3 +151,22 @@ export interface IPresenceList {
     status: 'confirmed' | 'cancelled' | 'no_show';
   }>;
 }
+
+// Tipos para Revisões
+export type Review = {
+  id: string;
+  eventId: string;
+  userId: string;
+  rating: number;
+  comment?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: IUser;
+  event?: IEvent;
+};
+
+// Tipos para Toast
+export type ToastMessage = {
+  type: 'success' | 'error';
+  message: string;
+};

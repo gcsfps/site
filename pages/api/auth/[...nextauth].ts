@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from '../../../src/lib/prisma';
 import { compare } from 'bcryptjs';
+import { getSession } from 'next-auth/react';
 
 export const authOptions = {
   providers: [
@@ -84,6 +85,17 @@ export const authOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Redirecionar para o dashboard apropriado após o login
+      if (url.startsWith('/login')) {
+        const session = await getSession();
+        if (session?.user?.type === 'promoter') {
+          return `${baseUrl}/promoter/dashboard`;
+        } else if (session?.user?.type === 'vip') {
+          return `${baseUrl}/vip/dashboard`;
+        }
+      }
+
+      // Outros redirecionamentos
       if (url.includes('signOut') || url.includes('logout')) {
         return `${baseUrl}/login`;
       }
@@ -95,6 +107,11 @@ export const authOptions = {
   session: {
     strategy: 'jwt',
     maxAge: 24 * 60 * 60, // 24 horas
+  },
+  events: {
+    async signOut() {
+      // Limpar qualquer estado adicional se necessário
+    },
   },
   jwt: {
     maxAge: 24 * 60 * 60, // 24 horas
